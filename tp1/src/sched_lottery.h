@@ -2,6 +2,10 @@
 #define __SCHED_LOT__
 #include "basesched.h"
 
+#include <list>
+#include <map>
+#include <utility>
+
 using namespace std;
 
 
@@ -10,24 +14,26 @@ public:
   SchedLottery(vector<int> argn);
   ~SchedLottery();
   virtual void load(int pid);
-  virtual void load(int pid, int deadline);
   virtual void unblock(int pid);
   virtual int tick(int cpu, const enum Motivo m);
  
 private:
-  struct proceso{
-    double compensacion;
-    int pid;
-    int tickets;
+  struct procesos_cmp {
+    bool operator() (const pair<int, int>& a,
+                     const pair<int, int>& b) const
+    {
+      return a.second < b.second ||
+             (a.second == b.second && a.first < b.first);
+    }
   };
-
-  list<pair<int, int> > procesos;
+    
+  list<pair<int, int> >::iterator proximo_proceso();
+  //El primer elemento es el pid, y el segundo la cantidad de tickets
+  list<pair<int, int> > procesos; 
   map<int, int> bloqueados;
   int ciclos;
   int quantum;
-  int semilla;
-  /*list<pair<int, int> >::iterator actual;*/
-  auto actual;
+  list<pair<int, int> >::iterator actual;
   int tickets;
 };
 
