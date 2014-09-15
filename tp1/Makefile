@@ -22,7 +22,7 @@ benchmark:
   $(BENCHDIR)/run.4.sh
   
 informe:
-	make -C $(INFORME)
+	make -C $(INFORMEDIR)
 	xdg-open $(BINDIR)/informe.pdf
 
 
