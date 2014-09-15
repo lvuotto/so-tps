@@ -83,14 +83,15 @@
 \textcolor{red}{\textbf{completar!}}
 
 \subsection{Métricas utilizadas}
-Para realizar este trabajo se debieron utilizar diversas métricas, con el
+Para realizar este trabajo se debieron utilizar diversas métricas con el
 objetivo de analizar distintos aspectos del rendimiento y comportamiento de
 los schedulers implementados.
 
-Como muchas de las metricas existentes se contradicen en diversos aspectos,
-no es posible utilizar una sola para realizar un analisis. Es por esto que
-decidimos elegir algunas,  con el objetivo de impactar lo menos posible en
-el resto. 
+Como las distintas métricas nos pueden arrojar diversas conclusiones sobre
+qué scheduler es mejor que otro, se procederá a realizar un análisis
+riguroso de cada algoritmo de scheduling bajo las diferentes métricas, con
+el fin de obtener una comparación óptima.
+
 Las métricas elegidas fueron las siguientes:
 \begin{itemize}
 
@@ -228,9 +229,19 @@ Ahora analizamos comparativamente en un procesador de 4 núcleos, manteniendo
 el mismo lote de tareas, y tomando los mismo valores de quantum (en 3
 simulaciones distintas).
 
+\section{Ejercicio 6}
+
+\subsection{Explicación del algoritmo}
+La idea central del algoritmo se basó en precalcular aleatoriamente en que
+ciclos de clock la tarea debe bloquearse. Para esto reutilizamos la funcion
+\textbf{get\_rand()} (ya mencionada en el ejercicio 1) con el objetivo de
+generar un numero aleatorio entre 0 y la cantidad de ciclos de cpu en la que
+la tarea debe bloquearse.
+
 \newpage
 
 \section{Apéndice 1: acerca de los tests}
+
 
 \textcolor{red}{\textbf{chequear!}} \medskip
 
