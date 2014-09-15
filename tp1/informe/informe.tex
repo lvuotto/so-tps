@@ -77,6 +77,7 @@
 
 %\normalsize
 \newpage
+\tableofcontents
 
 \section{Objetivos generales}
 \textcolor{red}{\textbf{completar!}}
@@ -99,7 +100,108 @@ El testeo de los algoritmos implementados fue realizado, principalmente, en las 
 
 \newpage
 
+
+ \section{Ejercicio 1}
+
+ \subsection{Explicacion del algoritmo}
+ Para este ejercicio lo que hicimos fue crear una funci\'on llamada
+ \textbf{get\_rand} a la cual le pasamos los parametros bmin y bmax. El
+ objetivo de esta funcion era generar un numero aleatorio entre bmin y bmax,
+ lo cual logramos de la siguiente manera:
+ \begin{verbatim}
+
+ return rand() % (bmax - bmin + 1) + bmin;
+
+ \end{verbatim}
+
+ Cabe destacar que utilizamos la funcion rand(), la cual fue sugerida por la
+ catedra, con el fin de generar un numero aleatorio.
+ Esta funci\'on es invocada n veces, siendo n el numero de veces que la
+ tarea debe ser bloqueada, dentro del ciclo principal de la tarea, con el
+ fin de generar n numeros aleatorios diferentes que seran utilizados como la
+ duracion de cada llamada bloqueante.
+
+
+
+
 \textbf{\textcolor{red}{¡COMPLETAR CON EL INFORME!}}
+
+\section{Ejercicio 3: Round Robin}
+
+\subsection{Explicación del algoritmo.}
+El tipo de scheduling \textit{round robin} consiste en asignar a cada proceso un
+tiempo predeterminado para que ejecute, llamado \textit{quantum}. Si el proceso no termina su ejecución antes de que se
+acabe su ración de tiempo, es desalojado y puesto en una cola (espera
+circular) para ser retomada su ejecución luego de atender a los demás
+procesos en dicha cola.
+
+Este modelo de scheduling permite asegurarse de que no exista
+\textit{starvation}, pues todos los procesos son atendidos; y no sólo eso,
+si no que a todos lo procesos les es asignado el mismo quantum. De esta
+forma, round robin es altamente confiable en términos de \textit{fairness}.
+
+Para implementarlo utilizamos una cola \footnote{Implementada con
+\textit{queue} de la STL de C++.}, de nombre
+\textit{ready} que nos indica las tareas en espera para su ejecución.
+Utilizamos también dos vectores \footnote{Implementados con
+\textit{vector} de la STL de C++.} de enteros, \textit{ticks} y
+\textit{quantums}. En el primero guardamos la cantidad de ciclos restantes
+para la tarea que está corriendo en cada núcleo, y en el segundo tenemos
+almacenados los quantums correspondientes a cada núcleo. 
+
+Dado un núcleo, cuando el elemento de \textit{ticks} correspondiente a dicho
+núcleo alcanza el valor \textit{0}, dicho proceso es desalojado y puesto en
+el final de la cola, dejando el procesador libre para el próximo en la cola.
+Si no existe algún proceso en la cola, la \textit{idle} es puesta a correr.
+
+De igual forma, cuando un proceso se bloquea, es puesto de vuelta en la
+cola, y la próxima vez que corra lo hará con el \textit{quantum} entero.
+Ésto es, quizás, una de las falencias de esta implementación \textit{naive}
+de \textit{round robin}, en términos de \textit{fairness}, pues la tarea que
+se bloquea \textit{pierde} una porción de su tiempo asignado, que no es
+recuperado en su siguiente turno. Una posible modificación a la
+implementación para solucionar esto sería añadir algún sistema de
+recompensas para las tareas que no terminan su \textit{quantum}.
+
+\section{Ejercicio 4: Simulaciones y análisis de Round Robin}
+
+\subsection{Introducción}
+En este ejercicio vamos a analizar el comportamiento del modelo de
+scheduling \textit{Round Robin} variando la cantidad de tareas, el quantum,
+la cantidad de núcleos, y el tiempo de cambio de contexto.
+La idea es ver como éstas variaciones afectan las distintas métricas
+mencionadas anteriormente, para así llegar a alguna conclusión sobre este
+scheduler.
+
+\subsection{Experimento 1: Funcionamiento RR}
+En este primer experimento vamos a simular 8 tareas de uso intensivo de CPU
+con un procesador de un núcleo, fijando el costo de cambio de contexto en 1,
+con un quantum fijo, y con \textit{release time} pseudoaleatorio.
+
+El objetivo de este experimento es verificar que el round robin se comporte
+de la manera esperada, es decir, la mencionada en el ejercicio 3.
+
+
+\subsection{Experimento 2: Impacto del quantum}
+La idea de este experimento es analizar el impacto del tamaño del quantum en el turnaround. Tener un quantum muy bajo haría que dicha métrica se reduzca,
+dado que habrá mas ciclos de reloj dedicados a realizar los cambios de
+contextos, aumentando el tiempo total que le tomas a las tareas terminar su
+ejecución. Pero si ésta es demasiado alta podría generar que el tiempo de
+respuesta percibido sea muy alto, pero como no nos interesa medir esta
+métrica, no lo tendremos en cuenta.
+
+Analizaremos primero comparativamente en un procesador de un núcleo, con el
+mismo lote de tareas, variando el quantum.
+
+Procesador de 1 núcleo, con un quantum de valor 2.
+
+Procesador de 1 núcleo, con un quantum de valor 7.
+
+Procesador de 1 núcleo, con un quantum de valor 15.
+
+Ahora analizamos comparativamente en un procesador de 4 núcleos, manteniendo
+el mismo lote de tareas, y tomando los mismo valores de quantum (en 3
+simulaciones distintas).
 
 \newpage
 
