@@ -1,9 +1,10 @@
-SRCDIR = src
-BINDIR = bin
-TESTDIR = test
-BENCHDIR = benchmark
-INFORMEDIR = informe
-IMGDIR = $(INFORMEDIR)/imagenes
+SRCDIR=src
+BINDIR=bin
+TESTDIR=test
+BENCHDIR=benchmark
+INFORMEDIR=informe
+IMGDIR=$(INFORMEDIR)/imagenes
+BENCHMARKS=run.4.sh
 
 
 .PHONY: all clean test benchmark informe
@@ -19,8 +20,12 @@ benchmark:
 	make test
 	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR)\
   BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR)\
-  $(BENCHDIR)/run.4.sh
-  
+  $(BENCHDIR)/$(BENCHMARKS)
+
+plot:
+	make benchmark
+	BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR) $(BENCHDIR)/plotter.sh
+
 informe:
 	make -C $(INFORMEDIR)
 	xdg-open $(BINDIR)/informe.pdf
