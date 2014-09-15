@@ -1,8 +1,6 @@
 #!/bin/bash
 
-for test in $BENCHDIR/ej4.*.sh; do
+for test in $BENCHDIR/ej4-*.sh; do
   nombre=$(basename $test)
-  $test $BINDIR "$TESTDIR/lote.${nombre%.sh}.tsk" | \
-    $BENCHDIR/graphsched.py > \
-    $IMGDIR/${nombre%.sh}.png
+  NOMBRE=${test%.sh} BINDIR=$BINDIR $test "$TESTDIR/lote.${nombre%.sh}.tsk"
 done
