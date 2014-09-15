@@ -82,6 +82,32 @@
 \section{Objetivos generales}
 \textcolor{red}{\textbf{completar!}}
 
+\subsection{Métricas utilizadas}
+Para realizar este trabajo se debieron utilizar diversas métricas con el
+objetivo de analizar distintos aspectos del rendimiento y comportamiento de
+los schedulers implementados.
+
+Como las distintas métricas nos pueden arrojar diversas conclusiones sobre
+qué scheduler es mejor que otro, se procederá a realizar un análisis
+riguroso de cada algoritmo de scheduling bajo las diferentes métricas, con
+el fin de obtener una comparación óptima.
+
+Las métricas elegidas fueron las siguientes:
+\begin{itemize}
+
+\item \textbf{Fairness}: Esta metrica, tambien llamada de ecuanimidad,
+captura que tan uniforme es la distribucion del cpu para
+cada proceso.
+
+\item \textbf{Throughput}: Mide la cantidad de procesos que
+finalizan por unidad de tiempo.
+
+\item \textbf{Turnaround}: Esta metrica muestra el tiempo total que le toma
+a cada proceso en ejecutar completamente, incluidos los tiempos de carga y
+cambios de contexto.
+
+
+\end{itemize}
 \newpage
 
 \section{Plataforma de pruebas}
@@ -236,6 +262,7 @@ Ahora analizamos comparativamente en un procesador de 4 núcleos, manteniendo
 el mismo lote de tareas, y tomando los mismo valores de quantum (en 3
 simulaciones distintas).
 
+<<<<<<< HEAD
 Procesador de 4 núcleos, con un quantum de valor 2.
 
 Procesador de 4 núcleos, con un quantum de valor 7.
@@ -272,10 +299,21 @@ consumió el proceso actual (el que ocupa el procesador).
 \item Una variable entera \textbf{tickets}, que indica la cantidad de
 tickets totales asignados.
 \end{itemize}
+=======
+\section{Ejercicio 6}
+
+\subsection{Explicación del algoritmo}
+La idea central del algoritmo se basó en precalcular aleatoriamente en que
+ciclos de clock la tarea debe bloquearse. Para esto reutilizamos la funcion
+\textbf{get\_rand()} (ya mencionada en el ejercicio 1) con el objetivo de
+generar un numero aleatorio entre 0 y la cantidad de ciclos de cpu en la que
+la tarea debe bloquearse.
+>>>>>>> aa0abbef602de7aed9dbf1c0b9ccc8ded31d5509
 
 \newpage
 
 \section{Apéndice 1: acerca de los tests}
+
 
 \textcolor{red}{\textbf{chequear!}} \medskip
 
