@@ -181,6 +181,39 @@ con un quantum fijo, y con \textit{release time} pseudoaleatorio.
 El objetivo de este experimento es verificar que el round robin se comporte
 de la manera esperada, es decir, la mencionada en el ejercicio 3.
 
+Primero simularemos un lote de 8 tareas de uso intensivo del cpu, con un
+costo de cambio de contexto de 1, en un procesador de 1 núcleo. Luego
+simularemos en el mismo entorno, pero con un lote de 8 tareas varias (uso
+intensivo y  taskConsola).
+
+El lote de tareas utilizado fue el siguiente:
+
+\begin{verbatim}
+TaskCPU 15
+TaskCPU 11
+TaskCPU 25
+TaskCPU 24
+TaskCPU 10
+TaskCPU 16
+TaskCPU 13
+TaskCPU 22
+\end{verbatim}
+
+\subsubsection{Resultados}
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej4-1.png}
+\end{center}
+\caption{Experimento 1. Lote 8 tareas. Quantum 5.}
+\end{figure}
+
+\subsubsection{Conclusión}
+Como era de esperarse, empieza a ejecutarse el primer proceso \textit{listo}
+hasta cumplir su cuota de tiempo, luego pasa a ejecutar al siguiente, y así
+hasta retomar la primer tarea (pues se turnan de manera circular). A medida
+que los procesos terminan la totalidad de su ejecución, la cola se va haciendo más corta,
+acortando el tiempo de espera entre el desalojo de un proceso y su retorno.
+Ésto se repite hasta que todos los procesos terminan su ejecución.
 
 \subsection{Experimento 2: Impacto del quantum}
 La idea de este experimento es analizar el impacto del tamaño del quantum en el turnaround. Tener un quantum muy bajo haría que dicha métrica se reduzca,
@@ -202,6 +235,43 @@ Procesador de 1 núcleo, con un quantum de valor 15.
 Ahora analizamos comparativamente en un procesador de 4 núcleos, manteniendo
 el mismo lote de tareas, y tomando los mismo valores de quantum (en 3
 simulaciones distintas).
+
+Procesador de 4 núcleos, con un quantum de valor 2.
+
+Procesador de 4 núcleos, con un quantum de valor 7.
+
+Procesador de 4 núcleos, con un quantum de valor 15.
+
+\subsubsection{Conclusión}
+
+\subsection{Ejercicio 5: Lottery Scheduling}
+\subsubsection{Explicación del algoritmo}
+El modelo de scheduling \textit{Lottery} consiste en tener un sistema
+pseudoaleatorio que decida cual va a ser el siguiente proceso a ser
+ejecutado. Esto lo hace \textit{repartiendo tickets} a cada proceso, y
+generando un ticket ganador al azar. Así, cada
+proceso va a tener asociado una cantidad de tickets, obteniendo
+cierta probabilidad de ganar la lotería. De esta forma, el proceso con más
+tickets tiene más probabilidades de ganar. Éste es el mecanismo que nos
+permite establecer relaciones de prioridades entre procesos.
+Y como dado un número entre $1$ y $n$, la posibilidad de que dicho número
+\textbf{no} salga nunca es $0$, eventualmente el número será elegido por el
+algoritmo de scheduling. De esta forma, no hay \textit{starvation}, pues
+todo proceso será puesto a correr en algún momento.
+
+Para implementarlo utilizamos:
+\begin{itemize}
+\item Una lista de procesos y sus tickets, \textbf{procesos}
+\footnote{Utilizamos \verb|list<pair<int,int> >| de la STL de C++.}.
+\item Un diccionario de procesos bloqueados, \textbf{bloqueados}
+%\footnote{Utilizamos \verb|map<int,int>| de la STL de C++. }, que dado un pid guarda con cuantos
+%tickets tiene que regresar.
+\item Una variable entera \textbf{ciclos}, que especifica cuantos ciclos
+consumió el proceso actual (el que ocupa el procesador).
+\item Una variable entera \textbf{quantum}.
+\item Una variable entera \textbf{tickets}, que indica la cantidad de
+tickets totales asignados.
+\end{itemize}
 
 \newpage
 
