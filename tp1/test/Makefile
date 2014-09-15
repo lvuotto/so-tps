@@ -1,4 +1,5 @@
-TESTS=ej2.tsk
+TESTS=ej2.tsk \
+      ej4.1.tsk
 
 all: $(TESTS)
 

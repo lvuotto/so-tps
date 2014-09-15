@@ -3,6 +3,7 @@ BINDIR = bin
 TESTDIR = test
 BENCHDIR = benchmark
 INFORMEDIR = informe
+IMGDIR = $(INFORMEDIR)/imagenes
 
 
 .PHONY: all clean test benchmark informe
@@ -14,8 +15,12 @@ test:
 	make -C $(TESTDIR)
 
 benchmark:
-	make -C $(BENCHDIR)
-
+	make
+	make test
+	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR)\
+  BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR)\
+  $(BENCHDIR)/run.4.sh
+  
 informe:
 	make -C $(INFORME)
 	xdg-open $(BINDIR)/informe.pdf
