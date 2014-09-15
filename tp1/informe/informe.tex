@@ -77,6 +77,7 @@
 
 %\normalsize
 \newpage
+\tableofcontents
 
 \section{Objetivos generales}
 \textcolor{red}{\textbf{completar!}}
@@ -98,6 +99,30 @@ El testeo de los algoritmos implementados fue realizado, principalmente, en las 
 \end{itemize}
 
 \newpage
+
+
+ \section{Ejercicio 1}
+
+ \subsection{Explicacion del algoritmo}
+ Para este ejercicio lo que hicimos fue crear una funci\'on llamada
+ \textbf{get\_rand} a la cual le pasamos los parametros bmin y bmax. El
+ objetivo de esta funcion era generar un numero aleatorio entre bmin y bmax,
+ lo cual logramos de la siguiente manera:
+ \begin{verbatim}
+
+ return rand() % (bmax - bmin + 1) + bmin;
+
+ \end{verbatim}
+
+ Cabe destacar que utilizamos la funcion rand(), la cual fue sugerida por la
+ catedra, con el fin de generar un numero aleatorio.
+ Esta funci\'on es invocada n veces, siendo n el numero de veces que la
+ tarea debe ser bloqueada, dentro del ciclo principal de la tarea, con el
+ fin de generar n numeros aleatorios diferentes que seran utilizados como la
+ duracion de cada llamada bloqueante.
+
+
+
 
 \textbf{\textcolor{red}{¡COMPLETAR CON EL INFORME!}}
 
