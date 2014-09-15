@@ -82,6 +82,31 @@
 \section{Objetivos generales}
 \textcolor{red}{\textbf{completar!}}
 
+\subsection{Métricas utilizadas}
+Para realizar este trabajo se debieron utilizar diversas métricas, con el
+objetivo de analizar distintos aspectos del rendimiento y comportamiento de
+los schedulers implementados.
+
+Como muchas de las metricas existentes se contradicen en diversos aspectos,
+no es posible utilizar una sola para realizar un analisis. Es por esto que
+decidimos elegir algunas,  con el objetivo de impactar lo menos posible en
+el resto. 
+Las métricas elegidas fueron las siguientes:
+\begin{itemize}
+
+\item \textbf{Fairness}: Esta metrica, tambien llamada de ecuanimidad,
+captura que tan uniforme es la distribucion del cpu para
+cada proceso.
+
+\item \textbf{Throughput}: Mide la cantidad de procesos que
+finalizan por unidad de tiempo.
+
+\item \textbf{Turnaround}: Esta metrica muestra el tiempo total que le toma
+a cada proceso en ejecutar completamente, incluidos los tiempos de carga y
+cambios de contexto.
+
+
+\end{itemize}
 \newpage
 
 \section{Plataforma de pruebas}
