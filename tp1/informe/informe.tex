@@ -157,20 +157,23 @@ proceso un tiempo predeterminado para que se ejecute, llamado
 se acabe, es desalojado y puesto en una cola (espera circular) para ser
 retomada su ejecución luego de atender a los demás procesos en dicha cola.
 
-Este modelo de scheduling permite asegurarse de que no exista la aninación,
+Este modelo de scheduling permite asegurarse de que no exista la inanición,
 pues todos los procesos son atendidos; y no sólo eso, si no que a todos lo
 procesos les es asignado el mismo quantum \textbf{\textcolor{red}{Man, no es
 tu amigo el corrector, habría que ver de redactarlo mejor}}. De esta
 forma, round robin es altamente confiable en términos de ecuanimidad.
 
-Para implementarlo utilizamos una cola \footnote{Implementada con
-\textit{queue} de la STL de C++.}, de nombre
+Para implementarlo utilizamos:
+\begin{itemize}
+\item una cola \footnote{Implementada con \textit{queue} de la STL de C++.}, de nombre
 \textit{ready} que nos indica las tareas en espera para su ejecución.
-Utilizamos también dos vectores \footnote{Implementados con
-\textit{vector} de la STL de C++.} de enteros, \textit{ticks} y
-\textit{quantums}. En el primero guardamos la cantidad de ciclos restantes
-para la tarea que está corriendo en cada núcleo, y en el segundo tenemos
+\item Un vector \footnote{Implementado con
+\textit{vector} de la STL de C++.} de enteros \textit{ticks} en el cual
+guardamos la cantidad de ciclos restantes para la tarea que está corriendo
+en cada núcleo.
+\item Un vector de enteros \textit{quantums} donde tenemos
 almacenados los quantums correspondientes a cada núcleo. 
+\end{itemize}
 
 Dado un núcleo, cuando el elemento de \textit{ticks} correspondiente a dicho
 núcleo alcanza el valor $0$, dicho proceso es desalojado y puesto en el
@@ -276,8 +279,8 @@ Procesador de 4 núcleos, con un quantum de valor 15.
 
 \subsubsection{Conclusión}
 
-\subsection{Ejercicio 5: Lottery Scheduling}
-\subsubsection{Explicación del algoritmo}
+\section{Ejercicio 5: Lottery Scheduling}
+\subsection{Explicación del algoritmo}
 El modelo de scheduling \textit{Lottery} consiste en tener un sistema
 pseudoaleatorio que decida cual va a ser el siguiente proceso a ser
 ejecutado. Esto lo hace \textit{repartiendo tickets} a cada proceso, y
@@ -288,16 +291,16 @@ tickets tiene más probabilidades de ganar. Éste es el mecanismo que nos
 permite establecer relaciones de prioridades entre procesos.
 Y como dado un número entre $1$ y $n$, la posibilidad de que dicho número
 \textbf{no} salga nunca es $0$, eventualmente el número será elegido por el
-algoritmo de scheduling. De esta forma, no hay \textit{starvation}, pues
+algoritmo de scheduling. De esta forma, no hay \textit{inanición}, pues
 todo proceso será puesto a correr en algún momento.
 
 Para implementarlo utilizamos:
 \begin{itemize}
 \item Una lista de procesos y sus tickets, \textbf{procesos}
-%\footnote{Utilizamos \verb|list<pair<int,int> >| de la STL de C++.}.
+\footnote{Utilizamos list(pair(int,int)) de la STL de C++.}.
 \item Un diccionario de procesos bloqueados, \textbf{bloqueados}
-%\footnote{Utilizamos \verb|map<int,int>| de la STL de C++. }, que dado un pid guarda con cuantos
-%tickets tiene que regresar.
+\footnote{Utilizamos map(int,int) de la STL de C++.}, que dado un pid guarda con cuantos
+tickets tiene que regresar.
 \item Una variable entera \textbf{ciclos}, que especifica cuantos ciclos
 consumió el proceso actual (el que ocupa el procesador).
 \item Una variable entera \textbf{quantum}.
@@ -305,6 +308,45 @@ consumió el proceso actual (el que ocupa el procesador).
 tickets totales asignados.
 \end{itemize}
 
+La implementación hecha está basada en la mencionada en el paper. Se utiliza
+una lista enlazada para guardar los procesos y sus respectivos tickets.
+Inicialmente a todos los procesos se les asigna 1 ticket, teniendo todos las
+mismas posibilidades de \textit{salir sorteados}; es interesante notar que
+dicho número podría ser cualquiera, mientras sea el mismo para todos, ya que
+mantiene la relación de igual prioridad para todos los procesos.
+
+A medida que algunos procesos cambian al estado \textit{bloqueado}, la
+cantidad de tickets de éste aumenta en proporción a la fracción de quantum que usó. Al
+bloquearse, es agregado al diccionario \textit{bloqueados}, con su pid y
+su nueva cantidad de tickets. Luego, al ser desbloqueado, es puesto de nuevo
+en la lista con su nueva cantidad de tickets, que es estrictamente mayor a
+la cantidad anterior.
+
+Para saber qué proceso debe correr, el scheduler genera un número
+aleatorio entre $0$ y $n-1$ \footnote{Siendo $n$ la suma total de tickets}, y luego recorre linealmente la lista de
+procesos. Al ir recorriendola, acumula la cantidad de tickets de los
+elementos que visita, y cuando dicha suma alcanza el valor generado
+ganador se encuentra al ganador.
+
+Una optimización adoptada del paper fue mantener la lista ordenada
+decrecientemente, de forma tal que al sacar el número ganador y recorrer la
+lista acumulando la sumatoria hasta alcanzar a dicho número, se minimize el
+recorrido. Ésto se debe a que los primeros valores son los más grandes,
+entonces el valor acumulado aumenta de la forma más rapida posible,
+corriendo menos iteraciones para alcanzar dicho valor. Aunque en el peor
+caso, el ticket ganador es el $n-1$, con lo cual no importa cómo esté
+ordenada la lista, para encontrar al ganador, la lista deberá ser recorrida
+hasta el final.
+
+La transferencia de tickets propuesta por el paper no fue implementada, ya que
+los procesos simulados en este trabajo no interactúan con otros, con lo cual
+no tiene sentido transferir prioridades para mejorar la dependencia entre
+procesos. Por la misma razón, tampoco fue implementada la inflación de
+tickets, ya que cumple una función similar.
+
+El modelo de \textit{tickets currencies} tampoco fue utilizado, ya que
+éste apunta al manejo de recursos compartidos por un grupo de procesos,
+situación que no se presenta en estas simulaciones.
 
 \section{Ejercicio 6}
 
