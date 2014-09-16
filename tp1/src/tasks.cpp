@@ -74,7 +74,6 @@ void tasks_init(void) {
 	register_task(TaskAlterno, -1);
     
     /* Tareas propias */
-    srand(123);
     register_task(TaskConsola, 3);
     register_task(TaskBatch, 2);
 }

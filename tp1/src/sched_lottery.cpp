@@ -44,11 +44,11 @@ list<pair<int, int> >::iterator SchedLottery::proximo_proceso() {
   int ganador = rand() % tickets;
   int suma_parcial = 0;
 
-  while(suma_parcial + it->second < ganador){
+  while (suma_parcial + it->second <= ganador) {
     suma_parcial += it->second;
     it++;
   }
-  for(auto i = procesos.begin(); i != procesos.end(); i++){
+  for (auto i = procesos.begin(); i != procesos.end(); i++) {
     i->second = 1;
   }
   return it;
@@ -65,7 +65,8 @@ int SchedLottery::tick(int cpu, const enum Motivo m) {
   } else if (m == BLOCK) {
 
     double f = ciclos / (double) quantum;
-    bloqueados.insert(pair<int, int>(actual->first, actual->second / f));
+    bloqueados.insert(pair<int, int>(actual->first,
+                      f != 0 ? actual->second / f : actual->second));
     ciclos = 0;
     tickets -= actual->second;
     procesos.erase(actual);
