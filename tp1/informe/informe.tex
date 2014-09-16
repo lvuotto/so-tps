@@ -90,81 +90,78 @@ los schedulers implementados.
 Como las distintas métricas nos pueden arrojar diversas conclusiones sobre
 qué scheduler es mejor que otro, se procederá a realizar un análisis
 riguroso de cada algoritmo de scheduling bajo las diferentes métricas, con
-el fin de obtener una comparación óptima.
+el fin de obtener una mejor comparación y poder ver las ventajas y
+desvantajas de cada algoritmo en distintos ámbitos, como ser el tiempo total
+de carga del CPU o la cantidad de procesos finalizados respecto al tiempo
+total de uso del CPU.
 
-Las métricas elegidas fueron las siguientes:
+Para tal fin, se decidieron analizar 3 aspectos de cada scheduler:
+
 \begin{itemize}
-
-\item \textbf{Fairness}: Esta metrica, tambien llamada de ecuanimidad,
-captura que tan uniforme es la distribucion del cpu para
-cada proceso.
-
-\item \textbf{Throughput}: Mide la cantidad de procesos que
-finalizan por unidad de tiempo.
-
-\item \textbf{Turnaround}: Esta metrica muestra el tiempo total que le toma
-a cada proceso en ejecutar completamente, incluidos los tiempos de carga y
-cambios de contexto.
-
-
+  \item \textbf{Fairness}: esta métrica, tambien llamada de ecuanimidad,
+  captura que tan uniforme es la distribucion del cpu para cada proceso.
+  \item \textbf{Throughput}: mide la cantidad de procesos que finalizan por
+  unidad de tiempo.
+  \item \textbf{Turnaround}: esta métrica muestra el tiempo total que le
+  toma a cada proceso en ejecutar completamente, incluídos los tiempos de
+  carga y cambios de contexto.
 \end{itemize}
 \newpage
+
 
 \section{Plataforma de pruebas}
 
 \textcolor{red}{\textbf{chequear!}} \medskip
 
-El testeo de los algoritmos implementados fue realizado, principalmente, en las máquinas del laboratorio 3 del DC. \newline
+El testeo de los algoritmos implementados fue realizado, principalmente, en
+las máquinas del laboratorio 3 del DC.
 \begin{itemize}
-  \item \textbf{Sistema Operativo:} Ubuntu Linux 12.04 x86_64, kernel 3.2.0-30-generic
-
-  \item \textbf{Especificaciones del Software:} el código está implementado en \textbf{C++}, compilado con \verb|-std=c++0x|.
-  Utilizamos \textbf{Bash} y \textbf{Ruby} para los scripts. Los gráficos fueron realizados con \textbf{gnuplot}.
-
-  \item \textbf{Especificaciones del Hardware:} Intel(R) Core(TM) i5-2500K CPU @ 3.30GHz, 8GB de RAM.
+  \item \textbf{Sistema Operativo:} Ubuntu Linux 12.04 x86_64,
+  kernel 3.2.0-30-generic
+  \item \textbf{Especificaciones del Software:} el código está implementado
+  en \textbf{C++}, compilado con \verb|-std=c++0x|. Utilizamos \textbf{Bash}
+  y \textbf{Ruby} para los scripts. Los gráficos fueron realizados con
+  \textbf{gnuplot} y las herramientas brindadas por la cátedra.
+  \item \textbf{Especificaciones del Hardware:} Intel(R) Core(TM) i5-2500K
+  CPU @ 3.30GHz, 8GB de RAM.
 \end{itemize}
 
 \newpage
 
 
- \section{Ejercicio 1}
+\section{Ejercicio 1}
 
- \subsection{Explicacion del algoritmo}
- Para este ejercicio lo que hicimos fue crear una funci\'on llamada
- \textbf{get\_rand} a la cual le pasamos los parametros bmin y bmax. El
- objetivo de esta funcion era generar un numero aleatorio entre bmin y bmax,
- lo cual logramos de la siguiente manera:
- \begin{verbatim}
+\subsection{Explicación del algoritmo}
+Para este ejercicio se decidió crear una función llamada \textbf{get\_rand}
+a la cual se le pasan los parámetros \textit{bmin} y \textit{bmax}. El
+objetivo de esta función es generar un número aleatorio entre \textit{bmin}
+y \textit{bmax}, lo cual se lleva de la siguiente manera:
 
- return rand() % (bmax - bmin + 1) + bmin;
+\begin{verbatim}
+return rand() % (bmax - bmin + 1) + bmin;
+\end{verbatim}
 
- \end{verbatim}
+Cabe destacar que utilizamos la funcion \verb|rand|, la cual fue sugerida
+por la cátedra, con el fin de generar un numero aleatorio. Esta función es
+invocada $n$ veces, siendo $n$ la cantidad de llamados bloqueantes que debe
+realizar la tarea, con el fin de generar los números aleatorios que serán
+utilizados como la duración de cada llamada.
 
- Cabe destacar que utilizamos la funcion rand(), la cual fue sugerida por la
- catedra, con el fin de generar un numero aleatorio.
- Esta funci\'on es invocada n veces, siendo n el numero de veces que la
- tarea debe ser bloqueada, dentro del ciclo principal de la tarea, con el
- fin de generar n numeros aleatorios diferentes que seran utilizados como la
- duracion de cada llamada bloqueante.
-
-
-
-
-\textbf{\textcolor{red}{¡COMPLETAR CON EL INFORME!}}
 
 \section{Ejercicio 3: Round Robin}
 
 \subsection{Explicación del algoritmo.}
-El tipo de scheduling \textit{round robin} consiste en asignar a cada proceso un
-tiempo predeterminado para que ejecute, llamado \textit{quantum}. Si el proceso no termina su ejecución antes de que se
-acabe su ración de tiempo, es desalojado y puesto en una cola (espera
-circular) para ser retomada su ejecución luego de atender a los demás
-procesos en dicha cola.
+El tipo de scheduling \textit{round robin} consiste en asignar a cada
+proceso un tiempo predeterminado para que se ejecute, llamado
+\textit{quantum}. Si el proceso no termina su ejecución antes dicho quantum
+se acabe, es desalojado y puesto en una cola (espera circular) para ser
+retomada su ejecución luego de atender a los demás procesos en dicha cola.
 
-Este modelo de scheduling permite asegurarse de que no exista
-\textit{starvation}, pues todos los procesos son atendidos; y no sólo eso,
-si no que a todos lo procesos les es asignado el mismo quantum. De esta
-forma, round robin es altamente confiable en términos de \textit{fairness}.
+Este modelo de scheduling permite asegurarse de que no exista la aninación,
+pues todos los procesos son atendidos; y no sólo eso, si no que a todos lo
+procesos les es asignado el mismo quantum \textbf{\textcolor{red}{Man, no es
+tu amigo el corrector, habría que ver de redactarlo mejor}}. De esta
+forma, round robin es altamente confiable en términos de ecuanimidad.
 
 Para implementarlo utilizamos una cola \footnote{Implementada con
 \textit{queue} de la STL de C++.}, de nombre
@@ -176,14 +173,15 @@ para la tarea que está corriendo en cada núcleo, y en el segundo tenemos
 almacenados los quantums correspondientes a cada núcleo. 
 
 Dado un núcleo, cuando el elemento de \textit{ticks} correspondiente a dicho
-núcleo alcanza el valor \textit{0}, dicho proceso es desalojado y puesto en
-el final de la cola, dejando el procesador libre para el próximo en la cola.
-Si no existe algún proceso en la cola, la \textit{idle} es puesta a correr.
+núcleo alcanza el valor $0$, dicho proceso es desalojado y puesto en el
+final de la cola, dejando el procesador libre para el próximo en la cola.
+Si no existe algún proceso en la cola, el núcleo entra en estado
+\textit{idle} hasta que se cargue una nueva tarea.
 
 De igual forma, cuando un proceso se bloquea, es puesto de vuelta en la
 cola, y la próxima vez que corra lo hará con el \textit{quantum} entero.
 Ésto es, quizás, una de las falencias de esta implementación \textit{naive}
-de \textit{round robin}, en términos de \textit{fairness}, pues la tarea que
+de \textit{round robin} en términos de \textit{fairness}, pues la tarea que
 se bloquea \textit{pierde} una porción de su tiempo asignado, que no es
 recuperado en su siguiente turno. Una posible modificación a la
 implementación para solucionar esto sería añadir algún sistema de
@@ -192,25 +190,25 @@ recompensas para las tareas que no terminan su \textit{quantum}.
 \section{Ejercicio 4: Simulaciones y análisis de Round Robin}
 
 \subsection{Introducción}
-En este ejercicio vamos a analizar el comportamiento del modelo de
-scheduling \textit{Round Robin} variando la cantidad de tareas, el quantum,
-la cantidad de núcleos, y el tiempo de cambio de contexto.
-La idea es ver como éstas variaciones afectan las distintas métricas
-mencionadas anteriormente, para así llegar a alguna conclusión sobre este
-scheduler.
+En este ejercicio se analizó el comportamiento del modelo de scheduling
+\textit{Round Robin} variando la cantidad de tareas, el quantum, la cantidad
+de núcleos y el tiempo de cambio de contexto. Se busca ver cómo estas
+variaciones afectan las distintas métricas mencionadas anteriormente, para
+así poder arrojar conclusiones sobre este scheduler.
 
 \subsection{Experimento 1: Funcionamiento RR}
-En este primer experimento vamos a simular 8 tareas de uso intensivo de CPU
-con un procesador de un núcleo, fijando el costo de cambio de contexto en 1,
-con un quantum fijo, y con \textit{release time} pseudoaleatorio.
+En este primer experimento simulamos 8 tareas corriendo simultaneamente en
+un procesador de un solo núcleo, fijando el costo de cambio de contexto en 1
+y el quantum en 5 ciclos de \textit{clock}. El tiempo en el que cada tarea
+pasaba a estado \textit{ready} fue elegido pseudoaleatoriamente.
 
-El objetivo de este experimento es verificar que el round robin se comporte
-de la manera esperada, es decir, la mencionada en el ejercicio 3.
+El objetivo de este experimento fue verificar que la implementación se
+comporte en efecto como un scheduler round robin, es decir, que siga el
+comportamiento mencionado en el ejercicio 3.
 
-Primero simularemos un lote de 8 tareas de uso intensivo del cpu, con un
-costo de cambio de contexto de 1, en un procesador de 1 núcleo. Luego
-simularemos en el mismo entorno, pero con un lote de 8 tareas varias (uso
-intensivo y  taskConsola).
+Primero se simuló un lote de 8 tareas de uso intensivo del CPU y luego un
+lote de 8 tareas varias (uso intensivo y uso interactivo). Ambos lotes se
+simularon según las condiciones explicadas previamentes.
 
 El lote de tareas utilizado fue el siguiente:
 
@@ -225,6 +223,8 @@ TaskCPU 13
 TaskCPU 22
 \end{verbatim}
 
+\textbf{\textcolor{red}{PONER EL OTRO LOTE}}
+
 \subsubsection{Resultados}
 \begin{figure}[htb]
 \begin{center}
@@ -234,20 +234,26 @@ TaskCPU 22
 \end{figure}
 
 \subsubsection{Conclusión}
+
+\textcolor{red}{\textbf{DEBATIR ESTE PÁRRAFO}}
+
 Como era de esperarse, empieza a ejecutarse el primer proceso \textit{listo}
 hasta cumplir su cuota de tiempo, luego pasa a ejecutar al siguiente, y así
 hasta retomar la primer tarea (pues se turnan de manera circular). A medida
-que los procesos terminan la totalidad de su ejecución, la cola se va haciendo más corta,
-acortando el tiempo de espera entre el desalojo de un proceso y su retorno.
-Ésto se repite hasta que todos los procesos terminan su ejecución.
+que los procesos terminan la totalidad de su ejecución, la cola se va
+haciendo más corta, acortando el tiempo de espera entre el desalojo de un
+proceso y su retorno. Ésto se repite hasta que todos los procesos terminan
+su ejecución.
 
 \subsection{Experimento 2: Impacto del quantum}
-La idea de este experimento es analizar el impacto del tamaño del quantum en el turnaround. Tener un quantum muy bajo haría que dicha métrica se reduzca,
-dado que habrá mas ciclos de reloj dedicados a realizar los cambios de
-contextos, aumentando el tiempo total que le tomas a las tareas terminar su
-ejecución. Pero si ésta es demasiado alta podría generar que el tiempo de
-respuesta percibido sea muy alto, pero como no nos interesa medir esta
-métrica, no lo tendremos en cuenta.
+Con este experimento se logró analizar el impacto del tamaño del quantum en
+el tiempo necesario para terminar de ejecutar cada tarea. Asignar un quantum
+muy bajo haría que dicho tiempo aumente, dado que habrá más ciclos de
+\textit{clock} dedicados a realizar los cambios de contextos, aumentando el
+tiempo total que le toma a cada tarea terminar su ejecución,
+\textcolor{red}{\textbf{WTF}} pero si este es demasiado alto podría generar
+que el tiempo de respuesta percibido sea muy alto, pero como no nos interesa
+medir esta métrica, no lo tendremos en cuenta.
 
 Analizaremos primero comparativamente en un procesador de un núcleo, con el
 mismo lote de tareas, variando el quantum.
@@ -262,7 +268,6 @@ Ahora analizamos comparativamente en un procesador de 4 núcleos, manteniendo
 el mismo lote de tareas, y tomando los mismo valores de quantum (en 3
 simulaciones distintas).
 
-<<<<<<< HEAD
 Procesador de 4 núcleos, con un quantum de valor 2.
 
 Procesador de 4 núcleos, con un quantum de valor 7.
@@ -289,7 +294,7 @@ todo proceso será puesto a correr en algún momento.
 Para implementarlo utilizamos:
 \begin{itemize}
 \item Una lista de procesos y sus tickets, \textbf{procesos}
-\footnote{Utilizamos \verb|list<pair<int,int> >| de la STL de C++.}.
+%\footnote{Utilizamos \verb|list<pair<int,int> >| de la STL de C++.}.
 \item Un diccionario de procesos bloqueados, \textbf{bloqueados}
 %\footnote{Utilizamos \verb|map<int,int>| de la STL de C++. }, que dado un pid guarda con cuantos
 %tickets tiene que regresar.
@@ -299,23 +304,23 @@ consumió el proceso actual (el que ocupa el procesador).
 \item Una variable entera \textbf{tickets}, que indica la cantidad de
 tickets totales asignados.
 \end{itemize}
-=======
+
+
 \section{Ejercicio 6}
 
 \subsection{Explicación del algoritmo}
-La idea central del algoritmo se basó en precalcular aleatoriamente en que
-ciclos de clock la tarea debe bloquearse. Para esto reutilizamos la funcion
-\textbf{get\_rand()} (ya mencionada en el ejercicio 1) con el objetivo de
-generar un numero aleatorio entre 0 y la cantidad de ciclos de cpu en la que
-la tarea debe bloquearse.
->>>>>>> aa0abbef602de7aed9dbf1c0b9ccc8ded31d5509
+Para llevar a cabo el algoritmo se precalculó aleatoriamente en que ciclos
+de \textit{clock} la tarea debía bloquearse. Para esto reutilizamos la
+función \verb|get_rand| utilizada en el ejercicio 1, con el objetivo de
+generar un número psudoaleatorio entre 0 y la cantidad de ciclos de cpu en
+la que la tarea debe bloquearse.
 
 \newpage
 
 \section{Apéndice 1: acerca de los tests}
 
 
-\textcolor{red}{\textbf{chequear!}} \medskip
+\textcolor{red}{\textbf{REVISAR TODO ESTO!}} \medskip
 
 Los \textbf{casos aleatorios se generan mediante los scripts} (en Ruby) \verb|ejN.random.rb|, donde
 N es el número correspondiente al problema. Estos scripts toman siempre \textbf{dos parámetros},
