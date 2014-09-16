@@ -4,7 +4,8 @@ TESTDIR=test
 BENCHDIR=benchmark
 INFORMEDIR=informe
 IMGDIR=$(INFORMEDIR)/imagenes
-BENCHMARKS=run.4.sh
+#BENCHMARKS=run.4.sh run.10.sh
+BENCHMARKS=run.2.sh
 
 
 .PHONY: all clean test benchmark informe
@@ -20,7 +21,7 @@ benchmark:
 	make test
 	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR)\
   BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR)\
-  $(BENCHDIR)/$(BENCHMARKS)
+  $(foreach bench, $(BENCHMARKS), $(BENCHDIR)/$(bench))
 
 plot:
 	make benchmark
