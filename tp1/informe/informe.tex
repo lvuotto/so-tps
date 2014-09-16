@@ -83,7 +83,7 @@ En este trabajo práctico se realizarán implementaciones de diversos
 schedulers, y se analizará su comportamiento de acuerdo a distintas
 métricas. Este analisis será realizado con un simulador proporcionado por la
 cátedra, el cual describe los procesos del scheduler en cada uno de los
-cores del procesador, en funcion del tiempo.
+núcleos del procesador, en funcion del tiempo.
 
 \subsection{Métricas utilizadas}
 Para realizar este trabajo se debieron utilizar diversas métricas con el
@@ -158,23 +158,23 @@ TaskConsola 6 1 16
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[scale=0.4]{imagenes/ej2-c-1.png}
+\includegraphics[scale=0.4]{imagenes/ej2-1-c-1.png}
 \end{center}
-\caption{Gráfico de los procesos corriendo en un core}
+\caption{Gráfico de los procesos corriendo en un núcleo}
 \end{figure}
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[scale=0.4]{imagenes/ej2-c-2.png}
+\includegraphics[scale=0.4]{imagenes/ej2-1-c-2.png}
 \end{center}
-\caption{Gráfico de los procesos corriendo en dos cores}
+\caption{Gráfico de los procesos corriendo en dos núcleos}
 \end{figure}
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[scale=0.4]{imagenes/ej2-c-3.png}
+\includegraphics[scale=0.4]{imagenes/ej2-1-c-3.png}
 \end{center}
-\caption{Gráfico de los procesos corriendo en tres cores}
+\caption{Gráfico de los procesos corriendo en tres núcleos}
 \end{figure}
 
 \newpage
@@ -268,8 +268,6 @@ TaskCPU 22
 
 \subsubsection{Conclusión}
 
-\textcolor{red}{\textbf{DEBATIR ESTE PÁRRAFO}}
-
 Como era de esperarse, empieza a ejecutarse el primer proceso \textit{listo}
 hasta cumplir su cuota de tiempo, luego pasa a ejecutar al siguiente, y así
 hasta retomar la primer tarea (pues se turnan de manera circular). A medida
@@ -283,10 +281,9 @@ Con este experimento se logró analizar el impacto del tamaño del quantum en
 el tiempo necesario para terminar de ejecutar cada tarea. Asignar un quantum
 muy bajo haría que dicho tiempo aumente, dado que habrá más ciclos de
 \textit{clock} dedicados a realizar los cambios de contextos, aumentando el
-tiempo total que le toma a cada tarea terminar su ejecución,
-\textcolor{red}{\textbf{WTF}} pero si este es demasiado alto podría generar
-que el tiempo de respuesta percibido sea muy alto, pero como no nos interesa
-medir esta métrica, no lo tendremos en cuenta.
+tiempo total que le toma a cada tarea terminar su ejecución, pero si este es
+demasiado alto podría generar que el tiempo de respuesta percibido sea muy
+alto y, como no nos interesa medir esta métrica, no lo tendremos en cuenta.
 
 Analizaremos primero comparativamente en un procesador de un núcleo, con el
 mismo lote de tareas, variando el quantum.
@@ -409,7 +406,7 @@ tal como lo pide el enunciado.
 Para poder llevar a cabo un scheduler \textit{Round Robin} sin migración
 entre núcleos, se modificó levemente la implementación del ejercicio 3 para
 lograr abstraer cada núcleo. Para eso se creó la estructura
-\verb|core_info|, la cual está compuesta por
+\verb|núcleo_info|, la cual está compuesta por
 
 \begin{itemize}
   \item el quantum asignado al procesador, \textit{quantum},
@@ -433,6 +430,250 @@ tarea en ejecución en el núcleo. Una vez obtenido este resultado para cada
 núcleo, la tarea en cuestión es cargada en el núcleo que minimice dicho
 resultado.
 
+\subsection{Experimentación}
+Para la experimentación de este ejercicio se decidió trabajar con un lote
+con las siguientes características:
+
+\begin{verbatim}
+*3 TaskCPU 50
+@3
+*5 TaskAlterno 10 20 20 10 20
+@5
+*3 TaskCPU 100
+@9
+*2 TaskAlterno 20 40 20 10 20
+\end{verbatim}
+
+Se utilizó dicho lote porque permite observar cómo actúa cada política al
+recibir nuevos procesos en distintos instantes de tiempo.
+
+El experimento fue llevado a cabo con el fin de analizar ventajas y
+desventajas de permitir o no migraciones de procesos a distintos núcleos
+cuando se utiliza la política de scheduling \textit{Round Robin}.
+
+Se llevaron a cabo 2 instancias de experimentación: una con un costo de
+migración entre núcleos de 2 ciclos de \textit{clock} y otro con un costo de
+5.
+
+\subsection{Resultados}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej8-1-rr-c-2.png}
+\end{center}
+\caption{Round Robin con quantum 10, dos núcleos y costo de migración 2}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej8-1-rr2-c-2.png}
+\end{center}
+\caption{Round Robin 2 con quantum 10, dos núcleos y costo de migración 2}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej8-2-rr-c-2-m-5.png}
+\end{center}
+\caption{Round Robin con quantum 10, dos núcleos y costo de migración 5}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej8-2-rr2-c-2-m-5.png}
+\end{center}
+\caption{Round Robin 2 con quantum 10, dos núcleos y costo de migración 5}
+\end{figure}
+
+\subsection{Conclusiones}
+
+Como se puede observar en las gráficas 5 y 6, pese a que el \textit{Round
+Robin 2} cuenta con menor \textit{turnaround}, presenta un mayor tiempo de
+estado \textit{idle} en alguno de los núcleos. De esto se concluye que, pese
+a que el tiempo total de ejecución disminuye con la nueva propuesta de
+\textit{Round Robin 2}, se desperdician parte de los recursos que hay a
+disposición, mientras que el enfoque clásico, pese a perder en performance,
+hace un mejor uso de recursos.
+
+Por las gráficas 7 y 8, podemos observar que al aumentar el costo de
+migración de procesos entre núcleos, el algoritmo estándar de \textit{Round
+Robin} es presenta un aumento aún mayor de \textit{turnaround}. De aquí se
+concluye que el nuevo algoritmo propuesto es razonable para los casos en los
+que la migración de procesos entre núcleos sea cara, como lo es en sistemas
+embebidos, mientras que la primera implementación provee una flexibilidad
+que, cuando dicho costo no es demasiado caro, puede ser beneficioso.
+
+\section{Ejercicio 9}
+
+\subsection{Metodología de experimentación}
+Para este ejercicio se analizó el resultado de correr un lote determinado
+(\verb|test/lote.ej9-1.tsk|) bajo el algoritmo de \textit{Lottery
+scheduler} con 1000 semillas aleatorias distintas, pues no se podría
+analizar ecuanimidad en una sola corrida, dada la naturaleza pseudoaleatoria
+de este scheduler.
+
+Para llevarlo a cabo, se analizó el uso de CPU de cada tarea durante los
+primeros 40 ciclos de \textit{clock} en cada corrida, sin tener en cuenta el
+tiempo gastado en cambio de contextos o el tiempo del núcleo en estado
+\textit{idle}.
+
+El objetivo de este experimento fue respaldar con evidencia empírica la
+hipótesis de ecuanimidad del algoritmo de scheduling propuesta por los
+autores.
+
+\subsection{Resultados}
+Al ser llevado a cabo el experimento, se obtuvo el siguiente resultado:
+
+\begin{verbatim}
+Tarea 0: 4822
+Tarea 1: 4751
+Tarea 2: 5101
+Tarea 3: 4749
+Tarea 4: 4853
+Tarea 5: 4904
+Tarea 6: 4816
+Tarea 7: 5004
+\end{verbatim}
+
+Como se puede observar, el tiempo de CPU utilizado por cada proceso luego de
+1000 corridas, oscila entre 4800 y 5200 ciclos de \textit{clock}, mientras
+que el valor óptimo esperado es de 5000 ciclos. Esto demuestra que la
+asignación de tiempo de CPU para cada proceso bajo el algoritmo de
+\textit{Lottery scheduler} es ecuánime.
+
+\textcolor{red}{\textbf{¡COMPLETAR EL PUTO APÉNDICE!}}
+
+Si se desean repetir estos resultados, siguiendo las instrucciones del
+apéndice, alcanza con ejecutar \verb|make plot; test/ej9-1.rb| en el
+directorio principal.
+
+\section{Ejercicio 10}
+
+\subsection{Metodología}
+Para llevar a cabo este experimento, se decidió ejecutar el \textit{Lottery
+scheduler} 5 veces con la compensación implementada y sin ésta. Cada par de
+corridas fue hecha con distintas semillas para números pseudoaleatorios con
+el fin de generar distintos comportamientos del scheduler.
+
+El obejetivo de este experimento es observar la falencia del scheduler sin
+la implementación de compesaciones de \textit{tickets}, ya que sin ésta,
+cuando una tarea no consume su total del quantum, está obteniendo menos
+recursos del procesador que las demás, bajando la ecuanimidad.
+
+\subsection{Resultados}
+\begin{verbatim}
+lote
+\end{verbatim}
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-c-s-1.png}
+\end{center}
+\caption{con compensación, semilla = 1}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-c-s-2.png}
+\end{center}
+\caption{con compensación, semilla = 2}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-c-s-3.png}
+\end{center}
+\caption{con compensación, semilla = 3}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-c-s-4.png}
+\end{center}
+\caption{con compensación, semilla = 4}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-c-s-5.png}
+\end{center}
+\caption{con compensación, semilla = 5}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-s-s-1.png}
+\end{center}
+\caption{sin compensación, semilla = 1}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-s-s-2.png}
+\end{center}
+\caption{sin compensación, semilla = 2}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-s-s-3.png}
+\end{center}
+\caption{sin compensación, semilla = 3}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-s-s-4.png}
+\end{center}
+\caption{sin compensación, semilla = 4}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej10-1-s-s-5.png}
+\end{center}
+\caption{sin compensación, semilla = 5}
+\end{figure}
+
+\section{Conclusión}
+
+En las primeras 5 figuras (las correspondientes al scheduler con
+compensación) se puede observar como la tarea que hace llamadas bloqueantes
+gana la lotería de manera relativamente seguida debido a que su probabilidad
+de salir elegida es mayor a la de las demás.
+
+En las 5 imágenes posteriores se observa como la tarea $0$ espera intervalos
+más grandes de tiempo que en las 5 primeras figuras, ésto es porque su
+probabilidad de ganar es igual a las demás.
+
+Este escenario denota la falencia de no tener una forma de compensación
+sobre las tareas que no usan la totalidad de su cuota de procesador. Con lo
+cual aquí se ve lo necesario de una forma de compensación para estas
+situaciones, de otra forma la ecuanimidad se ve disminuida.
+
+Una similitud que se notó en ambas implementaciones del scheduler fue que el
+turnaround fue de 320 ciclos aproximadamente, es decir, el compensar o no
+una tarea que no utiliza la totalidad de su tiempo no afecta el total de
+ciclos consumiodos para terminar de ejecutar todos los procesos.
+
+Observación: en el apéndice se adjuntan más imágenes de este experimento.
+
+\section{Conclusion Final}
+
+De hecho el lottery scheduler no es el único modelo de scheduling que sufre
+este problema, las dos implementaciones de Round robin analizadas en este
+trabajo, denotan la misma falencia.
+
+\section{Apéndice}
+
+Para compilar los archivos, basta situarse en el directorio \verb|tp1| y
+ejecutar el \verb|make|. Para generar las imágenes del trabajo se debe
+ejecutar en una terminal el comando \verb|make plot|. Para generar el
+informe, se debe ejecutar \verb|make plot; make informe|.
+
+Cabe destacar que es necesario tener instalado \verb|bash|, \verb|python|,
+\verb|ruby|, \verb|make| y \verb|g++|.
 
 
 \end{document}

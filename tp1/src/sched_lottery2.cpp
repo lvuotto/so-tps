@@ -1,4 +1,4 @@
-#include "sched_lottery.h"
+#include "sched_lottery2.h"
 
 #include <list>
 #include <map>
@@ -8,21 +8,21 @@
 
 using namespace std;
 
-SchedLottery::SchedLottery(vector<int> argn) : actual(procesos.begin()) {
+SchedLottery2::SchedLottery2(vector<int> argn) : actual(procesos.begin()) {
   srand(argn[2]);
   quantum = argn[1];
   ciclos = 0;
 }
 
-SchedLottery::~SchedLottery() {
+SchedLottery2::~SchedLottery2() {
 }
 
-void SchedLottery::load(int pid) { 
+void SchedLottery2::load(int pid) { 
   procesos.push_back(pair<int, int>(pid, 1));
   tickets++;
 }
 
-void SchedLottery::unblock(int pid) {
+void SchedLottery2::unblock(int pid) {
   pair<int, int> a_insertar;
   a_insertar.first = pid;
   a_insertar.second = bloqueados[pid];
@@ -36,7 +36,7 @@ void SchedLottery::unblock(int pid) {
   tickets += a_insertar.second;
 }
 
-list<pair<int, int> >::iterator SchedLottery::proximo_proceso() {
+list<pair<int, int> >::iterator SchedLottery2::proximo_proceso() {
   auto it = procesos.begin();
   if (it == procesos.end())
     return it;
@@ -54,7 +54,7 @@ list<pair<int, int> >::iterator SchedLottery::proximo_proceso() {
   return it;
 }
 
-int SchedLottery::tick(int cpu, const enum Motivo m) {
+int SchedLottery2::tick(int cpu, const enum Motivo m) {
   if (m == EXIT) {
     
     ciclos = 0;
@@ -64,9 +64,6 @@ int SchedLottery::tick(int cpu, const enum Motivo m) {
     
   } else if (m == BLOCK) {
 
-    /*double f = ciclos / (double) quantum;
-    bloqueados.insert(pair<int, int>(actual->first,
-                      f != 0 ? actual->second / f : actual->second));*/
     bloqueados.insert(pair<int, int>(actual->first, actual->second));
     ciclos = 0;
     tickets -= actual->second;

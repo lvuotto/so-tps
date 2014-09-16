@@ -5,7 +5,7 @@ BENCHDIR=benchmark
 INFORMEDIR=informe
 IMGDIR=$(INFORMEDIR)/imagenes
 #BENCHMARKS=run.4.sh run.10.sh
-BENCHMARKS=run.2.sh
+BENCHMARKS=run.10.sh
 
 
 .PHONY: all clean test benchmark informe

@@ -14,6 +14,7 @@
 #include "sched_rr.h"
 #include "sched_rr2.h"
 #include "sched_lottery.h"
+#include "sched_lottery2.h"
 
 using namespace std;
 
@@ -180,10 +181,11 @@ SchedBase* sched_create(const char* sched, vector<int> argn) {
 	 * donde "SchedX" es la nueva clase implementada y n es la cantidad de
 	 * parámetros que recibe su scheduler como un vector de enteros (vector<int>)
 	 * o ponga -1 para una cantidad de parámetros arbitraria. */
-	_sched_create(SchedRR, -1)
+	/*_sched_create(SchedRR, -1)
 	_sched_create(SchedRR2, -1)
-	_sched_create(SchedFCFS, -1)
-	_sched_create(SchedLottery, -1)
+	_sched_create(SchedFCFS, -1)*/
+	_sched_create(SchedLottery2, -1)
+	/*_sched_create(SchedLottery, -1)*/
 	return NULL;
 }
 
@@ -192,8 +194,8 @@ int main(int argc, char* argv[]) {
 	Settings settings;
 	int rc = cmdline_parse(argc, argv, settings);
 	if(rc != 0) return rc;
-
-	//Obtengo el scheduler a usar.
+	
+        //Obtengo el scheduler a usar.
 	SchedBase *scheduler = sched_create(settings.sched_class.c_str(), settings.sched_args);
 	if(!scheduler) {
 		cerr << "error: scheduler desconocido: " << settings.sched_class;
