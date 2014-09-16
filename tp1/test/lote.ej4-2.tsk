@@ -1,0 +1,16 @@
+@1
+TaskCPU 18
+@1
+TaskIO 21 15
+@1
+TaskCPU 26
+@1
+TaskCPU 17
+@1
+TaskCPU 16
+@1
+TaskConsola 21 5 18
+@0
+TaskConsola 14 14 18
+@1
+TaskIO 27 10

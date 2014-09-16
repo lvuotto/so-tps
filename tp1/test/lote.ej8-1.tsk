@@ -1,0 +1,7 @@
+*3 TaskCPU 50
+@3
+*5 TaskAlterno 10 20 20 10 20
+@5
+*3 TaskCPU 100
+@9
+*2 TaskAlterno 20 40 20 10 20

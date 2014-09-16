@@ -1,0 +1,5 @@
+#*2 TaskAlterno 1 8 2 8 2 8 2 8 2 8 1
+
+# Nos aseguramos que la tarea bloqueante empiece corriendo.
+#@1
+*8 TaskCPU 50
