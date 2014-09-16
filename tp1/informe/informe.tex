@@ -369,6 +369,42 @@ el tiempo total utilizado por la tarea es de \textit{total\_cpu} ciclos,
 tal como lo pide el enunciado.
 
 
+\section{Ejercicio 7}
+
+\newpage
+
+\section{Ejercicio 8}
+
+\subsection{Explicación del algoritmo}
+Para poder llevar a cabo un scheduler \textit{Round Robin} sin migración
+entre núcleos, se modificó levemente la implementación del ejercicio 3 para
+lograr abstraer cada núcleo. Para eso se creó la estructura
+\verb|core_info|, la cual está compuesta por
+
+\begin{itemize}
+  \item el quantum asignado al procesador, \textit{quantum},
+  \item la cantidad de procesos bloqueados, \textit{bloqueados},
+  \item la cola de procesos listo para ejecutar, \textit{ready},
+  \item la cantidad de ciclos de \textit{clock} consumidos por el proceso en
+  ejecución, \textit{ciclos} y
+  \item un booleano que informa si hay o no un proceso ejecutandose,
+  \textit{corriendo}.
+\end{itemize}
+
+Una vez decidida la asignación de los procesos a cada núcleo, al observarse
+el comportamiento del nuevo scheduler sobre cada núcleo, este es el mismo
+que un \textit{Round Robin} estándar corriendo en un procesador de un solo
+núcleo.
+
+Para decidir en qué núcleo cargar cada tarea, se procede a realizar una
+simple cuenta: se suman la cantidad procesos listos para correr con la
+cantidad de tareas bloqueadas y $1$ o $0$, dependiendo de si hay o no alguna
+tarea en ejecución en el núcleo. Una vez obtenido este resultado para cada
+núcleo, la tarea en cuestión es cargada en el núcleo que minimice dicho
+resultado.
+
+
+
 \newpage
 
 \section{Apéndice 1: acerca de los tests}
