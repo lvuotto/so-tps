@@ -310,10 +310,22 @@ tickets totales asignados.
 
 \subsection{Explicación del algoritmo}
 Para llevar a cabo el algoritmo se precalculó aleatoriamente en que ciclos
-de \textit{clock} la tarea debía bloquearse. Para esto reutilizamos la
+de \textit{clock} el proceso debe bloquearse. Para esto reutilizamos la
 función \verb|get_rand| utilizada en el ejercicio 1, con el objetivo de
-generar un número psudoaleatorio entre 0 y la cantidad de ciclos de cpu en
-la que la tarea debe bloquearse.
+generar un número pseudoaleatorio entre 0 y la cantidad de ciclos de CPU que
+consumirá el proceso. Este número fue utilizado para saber en qué ciclo el
+proceso debe bloquearse. Para esto se generó un vector de booleanos (del
+tamaño de la cantidad de ciclos que corre la tarea) el cual se llenó en las
+posiciones devueltas por la función \verb|get_rand|.
+
+Luego de esto el algoritmo recorre el vector de booleanos y se fija si en
+el ciclo actual debe bloquearse o utilizar CPU, según lo que diga esa
+posición indexada del vector. 
+
+Cada tarea se bloqueará por un ciclo de \textit{clock}, asegurando así que
+el tiempo total utilizado por la tarea es de \textit{total\_cpu} ciclos,
+tal como lo pide el enunciado.
+
 
 \newpage
 
