@@ -4,8 +4,6 @@ TESTDIR=test
 BENCHDIR=benchmark
 INFORMEDIR=informe
 IMGDIR=$(INFORMEDIR)/imagenes
-#BENCHMARKS=run.4.sh run.10.sh
-BENCHMARKS=run.10.sh
 
 
 .PHONY: all clean test benchmark informe
@@ -19,9 +17,12 @@ test:
 benchmark:
 	make
 	make test
-	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR)\
-  BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR)\
-  $(foreach bench, $(BENCHMARKS), $(BENCHDIR)/$(bench))
+	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR) BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR) $(BENCHDIR)/run.2.sh
+	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR) BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR) $(BENCHDIR)/run.4.sh
+	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR) BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR) $(BENCHDIR)/run.7.sh
+	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR) BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR) $(BENCHDIR)/run.8.sh
+	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR) BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR) $(BENCHDIR)/run.9.sh
+	BINDIR=$(BINDIR) TESTDIR=$(TESTDIR) BENCHDIR=$(BENCHDIR) IMGDIR=$(IMGDIR) $(BENCHDIR)/run.10.sh
 
 plot:
 	make benchmark
@@ -32,7 +33,7 @@ informe:
 	xdg-open $(BINDIR)/informe.pdf
 
 
-all: tp test bechmark
+all: tp test benchmark
 
 clean:
 	rm -f $(BINDIR)/*

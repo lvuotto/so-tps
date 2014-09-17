@@ -398,6 +398,140 @@ tal como lo pide el enunciado.
 
 \section{Ejercicio 7}
 
+En este experimento analizaremos el impacto del tamaño del quantum en
+el tiempo necesario para terminar de ejecutar cada tarea
+(\textit{Turnaround}). Asignar un quantum
+muy bajo haría que dicho tiempo aumente, dado que habría más ciclos de
+\textit{clock} dedicados a realizar los cambios de contextos, aumentando el
+tiempo total que le toma a cada tarea terminar su ejecución. Pero si éste es demasiado alto podría generar
+que el tiempo de respuesta percibido sea muy alto, pero como no nos interesa
+medir esta métrica en estos experimentos, no nos explayaremos más sobre ésto.
+
+Lo que haremos es ir variando el valor del quantum en un procesador de 1
+núcleo, y luego variar (con los mismos valores) dicho parámetro en un
+procesador de 4 núcleos. Utilizamos el siguiente lote de tareas:
+
+\begin{verbatim}
+TaskBatch 10 0 
+TaskBatch 10 1
+TaskBatch 10 2
+TaskBatch 10 3
+TaskBatch 10 4
+TaskBatch 10 5
+TaskBatch 10 6
+TaskBatch 10 7
+TaskBatch 10 8
+\end{verbatim}
+
+
+Para el propósito del experimento, como nos interesa que las tareas elijan
+de forma aleatoria cuando se bloquean y cuando usan CPU, pero al mismo
+tiempo nos interesa que esto se mantenga cuando variamos el quantum, y luego
+la cantidad de cores, usamos la semilla por defecto ($1$).
+
+Para correr los experimento usamos, como lo pide el enunciado, un costo de
+cambio de contexto de $1$, y un costo de migración de $2$.
+Estos son los resultados de las simulaciones:
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej7-1-c-1-q-2.png}
+\end{center}
+\caption{Procesador de 1 núcleo, con un quantum de valor 2.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej7-1-c-1-q-7.png}
+\end{center}
+\caption{Procesador de 1 núcleo, con un quantum de valor 7.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej7-1-c-1-q-15.png}
+\end{center}
+\caption{Procesador de 1 núcleo, con un quantum de valor 15.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej7-1-c-4-q-2.png}
+\end{center}
+\caption{Procesador de 4 núcleos, con un quantum de valor 2.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej7-1-c-4-q-7.png}
+\end{center}
+\caption{Procesador de 4 núcleos, con un quantum de valor 7.}
+
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{imagenes/ej7-1-c-4-q-15.png}
+\end{center}
+\caption{Procesador de 4 núcleos, con un quantum de valor 15.}
+\end{figure}
+
+\newpage
+\subsection{Conclusión}
+
+Si se observa la Figura 2, la tarea $0$ tiene un \textit{turnaround} de 120
+(aprox), y el de las demás tareas va aumentando progresivamente (ésto debido
+a que el número de llamadas bloqueantes de las tareas aumenta conforme a su
+número de tarea).
+
+Por otro lado, en la Figura 3 se observa como el \textit{turnaround} de la
+tarea $0$ es de 42, que es significativamente menor a 120. Y progresivamente
+el tiempo total de ejecución de las demás tareas va decrementando con respecto
+al gráfico anterior.
+
+Entonces, vemos como, a medida que aumenta el quantum se amortiza el costo
+de cambio de contexto, pues al durar más el tiempo asignado a cada tarea,
+hay menos tiempo \textit{muerto}, tiempo aprovechable para las tareas.
+
+Siguiendo en esta línea, al aumentar el quantum a 15 (figura 4), incluso se observa
+como la tarea $0$ puede aprovechar un tiempo asignado tan amplio,
+mientras que otras corren de igual forma que en la figura 3.
+
+Los resultados con 4 núcleos no hacen más que reforzar lo analizado
+anteriormente. Sucede el mismo fenómeno, con la diferencia de que al tener más
+nucleos la totalidad de las tareas terminan antes. La diferencia en términos
+de \textit{turnaround} entre un quantum de valor $2$ y otro de valor $7$ es
+muy grande, basta con observar a las tareas $0$ a $5$ para notar la mejoría en
+el desempeño. Una diferencia interesante con el procesador de $1$ núcleo es
+que de un quantum de valor $7$ a uno de valor $15$ sigue habiendo una
+mejoría sustancial; ya que, no sólo la tarea $0$ termina antes (como en el
+procesador de $1$ núcleo) si no que, también lo hacen las tareas $0$ a $3$.
+
+Podemos concluir entonces, dos puntos. Primero, a medida que el quantum
+aumenta, se aprovecha más tiempo del procesador, minimizando los tiempos
+muertos generados por los cambios de contexto y migraciones a otros núcleos
+, disminuyendo el tiempo total que tarda una tarea en terminar.
+Con lo cual, podemos afirmar que al aumentar el quantum nunca va a empeorar 
+el desempeño considerando la métrica \textit{turnaround}, al contrario,
+va a mejorar, aunque a lo sumo se mantendrá.
+
+Por otro lado, es interesante observar que la mejoría en dicha métrica en
+función de incrementar el quantum, está acotada por lo que la tarea hace de
+hecho. Ésto es, si la tarea realiza llamadas bloqueantes, no podrá
+aprovechar en su totalidad un quantum alto. Dicha situación es observable al
+ver la Figura 3 y 4, notar como las tareas con mayores llamadas bloqueantes
+tardan lo mismo teniendo un quantum de $7$ o $15$. Ésto también se cumple
+para el procesador de 4 núcleos, pero la diferencia es que esta cota es
+menos fuerte a medida ya que tiene 3 núcleos más.
+Teniendo ésto en cuenta, podríamos decir que el quantum óptimo para un
+lote de éstas características en el primer procesador es $15$, ya que si bien 
+no hay diferencia en términos de \textit{turnaround} para las tareas
+$1$ a $8$, sí lo hay para la tarea $0$, sin embargo podría usarse un quantum de valor
+$7$ sin perder demasiado.
+Por otra parte, el quantum óptimo para el segundo procesador, es sin ninguna
+duda $15$, pues como ya mencionamos anteriormente, son más de una las tareas
+que logran aprovechar dicho aumento en el quantum.
+
 \newpage
 
 \section{Ejercicio 8}
