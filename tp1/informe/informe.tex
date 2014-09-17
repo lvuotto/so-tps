@@ -64,11 +64,6 @@
 
 \thispagestyle{empty}
 \vfill
-\begin{abstract}
-    \vspace{0.5cm}
-    \textcolor{red}{\textbf{completar!}}
-\end{abstract}
-
 \thispagestyle{empty}
 \vspace{1.5cm}
 \tableofcontents
@@ -98,7 +93,7 @@ desvantajas de cada algoritmo en distintos ámbitos, como ser el tiempo total
 de carga del CPU o la cantidad de procesos finalizados respecto al tiempo
 total de uso del CPU.
 
-Para tal fin, se decidieron analizar 3 aspectos de cada scheduler:
+En este trabajo usaremos se decidieron analizar 3 aspectos:
 
 \begin{itemize}
   \item \textbf{Fairness}: esta métrica, tambien llamada de ecuanimidad,
@@ -107,11 +102,12 @@ Para tal fin, se decidieron analizar 3 aspectos de cada scheduler:
   proceso, y que tan justa es esa distribución con respecto a los demas. En
   nuestro caso consideramos una distribución justa, que cada proceso tenga
   la misma
-  \item \textbf{Throughput}: mide la cantidad de procesos que finalizan por
   unidad de tiempo.
   \item \textbf{Turnaround}: esta métrica muestra el tiempo total que le
   toma a cada proceso en ejecutar completamente, incluídos los tiempos de
   carga y cambios de contexto.
+  \item \textbf{Waiting Time}: ésta métrica nos indica cuanto tiempo pasa
+  una tarea esperando a ser ejecutada.
 \end{itemize}
 
 Existen otras métricas como por ejemplo el \textit{tiempo de respuesta}, que
@@ -239,10 +235,6 @@ El objetivo de este experimento fue verificar que la implementación se
 comporte en efecto como un scheduler round robin, es decir, que siga el
 comportamiento mencionado en el ejercicio 3.
 
-Primero se simuló un lote de 8 tareas de uso intensivo del CPU y luego un
-lote de 8 tareas varias (uso intensivo y uso interactivo). Ambos lotes se
-simularon según las condiciones explicadas previamentes.
-
 El lote de tareas utilizado fue el siguiente:
 
 \begin{verbatim}
@@ -256,7 +248,6 @@ TaskCPU 13
 TaskCPU 22
 \end{verbatim}
 
-\textbf{\textcolor{red}{PONER EL OTRO LOTE}}
 
 \subsubsection{Resultados}
 \begin{figure}[htb]
@@ -275,36 +266,6 @@ que los procesos terminan la totalidad de su ejecución, la cola se va
 haciendo más corta, acortando el tiempo de espera entre el desalojo de un
 proceso y su retorno. Ésto se repite hasta que todos los procesos terminan
 su ejecución.
-
-\subsection{Experimento 2: Impacto del quantum}
-Con este experimento se logró analizar el impacto del tamaño del quantum en
-el tiempo necesario para terminar de ejecutar cada tarea. Asignar un quantum
-muy bajo haría que dicho tiempo aumente, dado que habrá más ciclos de
-\textit{clock} dedicados a realizar los cambios de contextos, aumentando el
-tiempo total que le toma a cada tarea terminar su ejecución, pero si este es
-demasiado alto podría generar que el tiempo de respuesta percibido sea muy
-alto y, como no nos interesa medir esta métrica, no lo tendremos en cuenta.
-
-Analizaremos primero comparativamente en un procesador de un núcleo, con el
-mismo lote de tareas, variando el quantum.
-
-Procesador de 1 núcleo, con un quantum de valor 2.
-
-Procesador de 1 núcleo, con un quantum de valor 7.
-
-Procesador de 1 núcleo, con un quantum de valor 15.
-
-Ahora analizamos comparativamente en un procesador de 4 núcleos, manteniendo
-el mismo lote de tareas, y tomando los mismo valores de quantum (en 3
-simulaciones distintas).
-
-Procesador de 4 núcleos, con un quantum de valor 2.
-
-Procesador de 4 núcleos, con un quantum de valor 7.
-
-Procesador de 4 núcleos, con un quantum de valor 15.
-
-\subsubsection{Conclusión}
 
 \section{Ejercicio 5: Lottery Scheduling}
 \subsection{Explicación del algoritmo}
@@ -532,6 +493,41 @@ Por otra parte, el quantum óptimo para el segundo procesador, es sin ninguna
 duda $15$, pues como ya mencionamos anteriormente, son más de una las tareas
 que logran aprovechar dicho aumento en el quantum.
 
+Analizando el \textit{waiting time} de las tareas en la figura 5 para el
+procesador de un núcleo, observamos que éste es relativamente parejo para
+todas las tareas (aunque efectivamente para las tareas que están primeras
+en la cola dicho valor es menor). Al ir aumentando el quantum (figuras 6 y 7),
+la diferencia de tiempo de espera se va incrementando
+en gran medida; incluso al punto de que el tiempo de espera de la tarea
+$0$ es casi un tercio en relacion a la tarea $7$. Esto se debe a que con un
+quantum mayor, las tareas de uso intensivo de CPU aprovechan más el recurso
+asignado, mientras que las tareas de muchas llamadas bloqueantes casi no
+sienten el impacto en el \textit{waiting time}, que se mantiene relativamente
+constante al ir variando el quantum. Esto se puede observar en las tareas
+$5$ a $8$.
+
+Esto nos indica que la mejoría en términos de \textit{waiting time} al
+incrementar el quantum no es siempre significativa, va a depender del tipo
+de tareas que se ejecuten. Las tareas de uso intensivo de CPU se verán
+favorecidas por un aumento en el tiempo asignado, en cambio, las tareas de
+muchas llamadas bloqueantes no sienten el impacto en gran medida, pero
+tampoco las perjudica. De hecho las tareas que tienen una proporción media
+se ven favoricidas por el aumento del quantum.
+
+De esta forma, al igual que analizando desde la perspectiva de
+\textit{turnaround},  el quantum óptimo es $15$, aunque adoptando un valor
+menor, como $7$, también se obtienen buenos resultados, y no demasiado por
+debajo que al usar $15$; pues el cambio del menor al mayor impacta sólo
+impacta en la tarea $0$, que no tiene ninguna llamada bloqueante.
+
+Ahora, al analizar el procesador de 4 núcleos, llegamos a la misma
+conclusión. Los tiempos de esperas de las tareas se acortan enormemente
+al pasar de un quantum de valor $2$ a uno de valor $7$. Pero, al contrario
+del caso anterior, al pasar a $15$ se da un cambio significativo, no el
+mismo que el anterior, pero el impacto en las tareas $1$ a $5$ es
+importante. Concluimos entonces que en ésta situación el quantum óptimo
+también es $15$.
+
 \newpage
 
 \section{Ejercicio 8}
@@ -675,8 +671,6 @@ que el valor óptimo esperado es de 5000 ciclos. Esto demuestra que la
 asignación de tiempo de CPU para cada proceso bajo el algoritmo de
 \textit{Lottery scheduler} es ecuánime.
 
-\textcolor{red}{\textbf{¡COMPLETAR EL PUTO APÉNDICE!}}
-
 Si se desean repetir estos resultados, siguiendo las instrucciones del
 apéndice, alcanza con ejecutar \verb|make plot; test/ej9-1.rb| en el
 directorio principal.
@@ -694,11 +688,14 @@ la implementación de compesaciones de \textit{tickets}, ya que sin ésta,
 cuando una tarea no consume su total del quantum, está obteniendo menos
 recursos del procesador que las demás, bajando la ecuanimidad.
 
-\subsection{Resultados}
+El lote utilizado fue el siguiente:
 \begin{verbatim}
-lote
+TaskAlterno 1 15 1 15 1 15 1 15 1 15 1
+@1
+*3 TaskCPU 100
 \end{verbatim}
 
+\subsection{Resultados}
 
 \begin{figure}[H]
 \begin{center}
@@ -794,6 +791,11 @@ ciclos consumiodos para terminar de ejecutar todos los procesos.
 Observación: en el apéndice se adjuntan más imágenes de este experimento.
 
 \section{Conclusion Final}
+
+El trabajo hecho aquí nos pareció interesante. Hemos analizado  varios
+schedulers y sus comportamientos con distintos tipos de tareas, y sus
+ventajas y desventajas en dichas situaciones.
+
 
 De hecho el lottery scheduler no es el único modelo de scheduling que sufre
 este problema, las dos implementaciones de Round robin analizadas en este
