@@ -1,7 +1,7 @@
 #include <signal.h>
 #include <errno.h>
-
 #include "biblioteca.h"
+
 
 /* Estructura que almacena los datos de una reserva. */
 typedef struct {
@@ -13,6 +13,7 @@ typedef struct {
 	pthread_mutex_t m_cant_personas;
 	pthread_cond_t vc_rescatistas;
 	int para_salir;
+  pthread_mutex_t m_salida;
 	pthread_cond_t vc_salida;
 } t_aula;
 
@@ -60,6 +61,7 @@ void t_aula_ingresar(t_aula *un_aula, t_persona *alumno)
 
 void t_aula_liberar(t_aula *un_aula, t_persona *alumno)
 {
+
 	pthread_mutex_lock(&un_aula->m_cant_personas);	
 	un_aula->cantidad_de_personas--;
 	pthread_mutex_unlock(&un_aula->m_cant_personas);	
@@ -69,9 +71,10 @@ static void terminar_servidor_de_alumno(int socket_fd, t_aula *aula, t_persona *
 	printf(">> Se interrumpió la comunicación con una consola.\n");
 		
 	close(socket_fd);
-	
-	t_aula_liberar(aula, alumno);
-	exit(-1);
+  if (aula != NULL)	
+  	t_aula_liberar(aula, alumno);
+
+  pthread_exit(NULL);
 }
 
 
@@ -81,11 +84,6 @@ t_comando intentar_moverse(t_aula *el_aula, t_persona *alumno, t_direccion dir)
 	int columna = alumno->posicion_columna;
 	alumno->salio = direccion_moverse_hacia(dir, &fila, &columna);
 
-	///char buf[STRING_MAXIMO];
-	///t_direccion_convertir_a_string(dir, buf);
-	///printf("%s intenta moverse hacia %s (%d, %d)... ", alumno->nombre, buf, fila, columna);
-	
-	
 	bool entre_limites = (fila >= 0) && (columna >= 0) &&
 	     (fila < ANCHO_AULA) && (columna < ALTO_AULA);
 	     
@@ -108,13 +106,6 @@ t_comando intentar_moverse(t_aula *el_aula, t_persona *alumno, t_direccion dir)
 		alumno->posicion_columna = columna;
 	}
 	
-	
-	//~ if (pudo_moverse)
-		//~ printf("OK!\n");
-	//~ else
-		//~ printf("Ocupado!\n");
-
-
 	return pudo_moverse;
 }
 
@@ -180,15 +171,59 @@ void atendedor_de_alumno(int socket_fd, t_aula *el_aula)
 	
 	colocar_mascara(el_aula, &alumno);
 
+  /* Nueva solucion */
+
+  /* Si hay personas saliendo, espero sin modificar las cantidades. */
+  pthread_mutex_lock(saliendo);
+  while (saliendo)
+    pthread_cond_wait(saliendo);
+  pthread_mutex_unlock(saliendo);
+
+  /* Una vez que sé que no hay gente saliendo, me anoto para salir,
+   * y si soy el 5to, marco el bool saliendo como verdadero.
+   **/
+  pthread_mutex_lock(m_aula_estado);
+  cant_personas--;
+  cant_para_salir++;
+
+  pthread_mutex_lock(saliendo);
+  if (cant_para_salir == 5) saliendo = true;
+  pthread_mutex_unlock(saliendo);
+
+  /* Espero a juntar 5 personas para salir, o bien que no haya suficien*/
+  while(cant_personas > 0 && cant_para_salir < 5)
+    ptrhead_cond_wait(cond_estado);
+  cant_para_salir--;
+  pthread_mutex_unlock(m_aula_estado);
+
+  pthread_mutex_lock(saliendo);
+  if (para_)
+
+  /* FIN NUEVA SOLUCION */
+
 	t_aula_liberar(el_aula, &alumno);
+
+ /* Primero pregunto si ya hay gente saliendo. */
+  pthread_mutex_lock(&el_aula->m_saliendo);
+  while (saliendo)
+    pthread_cond_wait(cond_saliendo);
+
 	/* Esperamos a que haya 5 para salir. */
-	/*pthread_mutex_lock(&el_aula->m_cant_personas);
+	pthread_mutex_lock(&el_aula->m_cant_personas);
 	el_aula->para_salir++;
+
+  /* Ni bien hay 5 personas, entonces ya se sale*/
+  if (para_salir >= 5) saliendo = true;
+
+  pthread_mutex_unlock(&el_aula->m_saliendo);
+
+
 	while (el_aula->cant_personas > 0 && el_aula->para_salir < 5)
 	  pthread_cond_wait(&el_aula->vc_salida, &el_aula->m_cant_personas);
 	pthread_mutex_unlock(&el_aula->m_cant_personas);
-	el_aula->*/
-	enviar_respuesta(socket_fd, LIBRE);
+/*	
+  
+  enviar_respuesta(socket_fd, LIBRE);
 	
 	printf("Listo, %s es libre!\n", alumno.nombre);
 }
@@ -199,13 +234,33 @@ void * start_routine(void* args){
 }
 
 
-int main(void)
-{
-	//signal(SIGUSR1, signal_terminar);
+void destruir_aula(t_aula* el_aula_ptr){
+  
+  if (el_aula_ptr != NULL){
+    /* Destruyo los mutex de la matriz. */
+    int i, j;
+    for(i = 0; i < ANCHO_AULA; i++)
+    {
+      for (j = 0; j < ALTO_AULA; j++)
+      {
+        pthread_mutex_destroy(&un_aula->m_posiciones[i][j]);
+      }
+    }
+
+    /* Destruyo los mutex. */
+    pthread_mutex_destroy(el_aula_ptr->m_rescatistas);
+    pthread_mutex_destroy(el_aula_ptr->m_cant_personas);
+
+    /* Destruyo las variables de condición. */
+    pthread_cond_destroy(el_aula_ptr->vc_rescatistas);
+    pthread_cond_destroy(el_aula_ptr->vc_salida);
+  }
+}
+
+void servidor(t_aula *el_aula){
+
 	int socketfd_cliente, socket_servidor, socket_size;
 	struct sockaddr_in local, remoto;
-
-	
 
 	/* Crear un socket de tipo INET con TCP (SOCK_STREAM). */
 	if ((socket_servidor = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -225,10 +280,10 @@ int main(void)
 	if (listen(socket_servidor, 5) == -1) {
 		perror("escuchando");
 	}
-	
-	t_aula el_aula;
-	t_aula_iniciar_vacia(&el_aula);
-		
+
+  /* Registrar handler para atender la terminación del proceso */
+  
+
 	/// Aceptar conexiones entrantes.
 	socket_size = sizeof(remoto);
 	for(;;){		
@@ -241,11 +296,29 @@ int main(void)
 			pthread_t tid;
 			thread_args args;
 			args.fd = socketfd_cliente;
-			args.aula = &el_aula;
+			args.aula = el_aula;
 			pthread_create(&tid, NULL, start_routine, &args);
 		}
 	}
 
+}
+
+int main(void)
+{
+	t_aula el_aula;
+	t_aula_iniciar_vacia(&el_aula);
+
+  pid_t serv_pid = fork();
+
+  if (serv_pid < 0) perror("fork");
+
+  if (serv_pid == 0){
+      servidor(&el_aula);
+  } else {
+    int stat;
+    wait(&stat);
+    destruir_aula(&el_aula);
+  }
 
 	return 0;
 }
