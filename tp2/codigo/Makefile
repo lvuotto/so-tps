@@ -1,8 +1,7 @@
-CC = gcc
-CFLAGS = -g -Wall -Werror
-LDFLAGS = -pthread
+CFLAGS=-Wall -Werror -g -std=gnu99 -O0
+LDFLAGS=-pthread
 
-BINARIES = servidor_mono servidor_multi cliente
+BINARIES=servidor_mono servidor_multi cliente
 
 all: $(BINARIES)
 
