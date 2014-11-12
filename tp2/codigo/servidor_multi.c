@@ -248,7 +248,7 @@ void atendedor_de_alumno(int socket_fd, t_aula *el_aula)
 
 void * start_routine(void* args)
 {
-  thread_args arg = (thread_args *) *args;
+  thread_args arg = *(thread_args *) args;
   free(args);
   atendedor_de_alumno(arg.fd, arg.aula);
   return NULL;
