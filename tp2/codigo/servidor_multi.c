@@ -230,13 +230,12 @@ void atendedor_de_alumno(int socket_fd, t_aula *el_aula)
   el_aula->saliendo = el_aula->para_salir == 5 ||
                       el_aula->cantidad_de_personas == 0;
 
-
   while (!el_aula->saliendo) {
     printf("%s: esperando `!el_aula->saliendo`...\n", alumno.nombre);
     pthread_cond_wait(&el_aula->vc_estado, &el_aula->m_estado);
   }
   el_aula->para_salir--;
-  pthread_cond_signal(&el_aula->vc_estado);
+  pthread_cond_broadcast(&el_aula->vc_estado);
   /* Si somos 0, habilitamos a la gente a entrar, migo. */
   el_aula->saliendo = el_aula->para_salir != 0;
   pthread_mutex_unlock(&el_aula->m_estado);
@@ -297,7 +296,7 @@ void servidor(t_aula *aula)
   }
 
   /* Escuchar en el socket y permitir 5 conexiones en espera. */
-  if (listen(socket_servidor, 5) < 0) {
+  if (listen(socket_servidor, 1000) < 0) {
     perror("escuchando");
     exit(3);
   }
