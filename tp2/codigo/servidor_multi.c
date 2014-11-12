@@ -14,7 +14,6 @@ typedef struct {
   int para_salir;
   bool saliendo;
   pthread_mutex_t m_posiciones[ANCHO_AULA][ALTO_AULA];
-  pthread_mutex_t m_personas;
   pthread_mutex_t m_rescatistas;
   pthread_mutex_t m_estado;
   pthread_cond_t vc_rescatistas;
@@ -43,7 +42,6 @@ void t_aula_iniciar_vacia(t_aula *un_aula)
   un_aula->saliendo = false;
 
   pthread_mutex_init(&un_aula->m_rescatistas, NULL);
-  pthread_mutex_init(&un_aula->m_personas, NULL);
   pthread_mutex_init(&un_aula->m_estado, NULL);
 
   pthread_cond_init(&un_aula->vc_rescatistas, NULL);
@@ -250,8 +248,9 @@ void atendedor_de_alumno(int socket_fd, t_aula *el_aula)
 
 void * start_routine(void* args)
 {
-  thread_args *a = (thread_args *) args;
-  atendedor_de_alumno(a->fd, a->aula);
+  thread_args arg = (thread_args *) *args;
+  free(args);
+  atendedor_de_alumno(arg.fd, arg.aula);
   return NULL;
 }
 
@@ -312,16 +311,19 @@ void servidor(t_aula *aula)
     if (socketfd_cliente < 0) {
       printf("!! Error al aceptar conexion\n");
     } else {
-      thread_args args;
-      args.fd = socketfd_cliente;
-      args.aula = aula;
+      thread_args *args = (thread_args *) malloc(sizeof(*args));
+      args->fd = socketfd_cliente;
+      args->aula = aula;
+      fprintf(stderr, "[dbg]: abriendo socket %d [%d]...\n",
+              socketfd_cliente,
+              args->fd);
 
       pthread_t tid;
       pthread_attr_t attr;
 
       pthread_attr_init(&attr);
       pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-      pthread_create(&tid, &attr, start_routine, &args);
+      pthread_create(&tid, &attr, start_routine, args);
       pthread_attr_destroy(&attr);
     }
   }
