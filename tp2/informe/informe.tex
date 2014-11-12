@@ -1,0 +1,106 @@
+\documentclass[a4paper]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
+\usepackage{charter}   % tipografia
+\usepackage{graphicx}
+\usepackage{makeidx}
+
+\usepackage{float}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{amsfonts}
+\usepackage{sectsty}
+\usepackage{wrapfig}
+\usepackage{listings}
+\usepackage{caption}
+
+\usepackage{hyperref} %las entradas del índice tienen links
+\hypersetup{
+    colorlinks=true,
+    linktoc=all,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\input{codesnippet}
+\input{page.layout}
+\usepackage{underscore}
+\usepackage{caratula}
+\usepackage{url}
+
+\usepackage{color}
+\usepackage{clrscode3e} % para el pseudocodigo
+
+
+
+
+\begin{document}
+
+\lstset{
+  language=C++,
+  backgroundcolor=\color{white},   % choose the background color
+  basicstyle=\footnotesize,        % size of fonts used for the code
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+}
+
+\thispagestyle{empty}
+\materia{Sistemas Operativos}
+\submateria{Segundo Cuatrimestre de 2014}
+\titulo{Trabajo Práctico II}
+%\subtitulo{}
+\integrante{Caravario, Martín}{470/12}{martin.caravario@gmail.com}
+\integrante{Hosen, Federico}{825/12}{fhosen@hotmail.com}
+\integrante{Vuotto, Lucas}{385/12}{lvuotto@dc.uba.ar}
+
+\maketitle
+\newpage
+
+\thispagestyle{empty}
+\vfill
+\thispagestyle{empty}
+\vspace{1.5cm}
+\tableofcontents
+\newpage
+
+
+%\normalsize
+\newpage
+
+\section{Introducción}
+
+El objetivo de este trabajo práctico es implementar un nuevo diseño de una
+simulación de simulacro de evacuación.
+
+Se desea pasar de un modelo  \textit{mono-thread} a uno
+\textit{multi-thread}, para poder simular que varios alumnos se muevan por
+el aula simultaneamente.
+
+Para esta nueva implementación se pide utilizar la biblioteca
+\textit{Pthreads}, restringiéndonos únicamente a los mutexes y variables de
+condición provistas por ésta.
+
+En este informe detallaremos la implmentación realizada, y justificaremos
+las decisiones que fuimos tomando a la hora de resolver el trabajo práctico.
+
+Dicha explicación y justificación estarán en la sección que se encuentra a
+continuación, en forma de un único texto.
+
+
+
+\subsection{Detalles de implementación}
+\newpage
+
+
+
+\subsection{Paralelismo}
+
+\subsection{Deadlock}
+
+\end{document}
