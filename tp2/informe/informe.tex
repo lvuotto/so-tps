@@ -87,15 +87,199 @@ Para esta nueva implementación se pide utilizar la biblioteca
 condición provistas por ésta.
 
 En este informe detallaremos la implmentación realizada, y justificaremos
-las decisiones que fuimos tomando a la hora de resolver el trabajo práctico.
+las decisiones que fuimos tomando a lo largo de la resolución del trabajo práctico.
+
 
 Dicha explicación y justificación estarán en la sección que se encuentra a
 continuación, en forma de un único texto.
 
 
 
-\subsection{Detalles de implementación}
 \newpage
+\subsection{Detalles de implementación}
+La idea del nuevo diseño es tener un hilo principal que gestione las
+conexiones y delegue el trabajo de atender a un cliente en un nuevo thread.
+Para hacer ésto, el programa forkea, siendo el hijo el encargado de ser el
+hilo principal, y el padre solamente espera a que el hijo termine.
+
+Ésto lo hicimos para destruir todas las variables de tipo mutex, y de
+condición que utilizamos para modelar al aula. El trabajo del padre es
+simplemente esperar a que el servidor termine y luego destruir al aula.
+
+Es el hijo quien se encarga de ser el servidor. Ésto lo hace llamando a la
+función \textit{servidor}.
+
+Aquí se encuentra ya el primer cambio, se modularizaron las funcionalidades,
+estando ahora en la función \textit{servidor} el código que antes (en el
+servidor mono) se encontraba en el \textit{main}.
+
+La forma de establecer la conexión con el cliente es la misma que antes, se
+sigue utilizando un socket de tipo \textit{INET} con el protocolo
+\textit{TCP}.
+
+La diferencia en la gestión de las conexiones se en el ciclo. Una vez que la
+conexión con el cliente fue establecida, se inicializan los atributos
+necesarios y los argumentos para crear al \textit{worker thread} que
+atenderá al cliente.
+
+Para poder pasar los argumentos creamos una estructura de nombre
+\textit{args} que tiene dos miembros, \textit{fd} y \textit{aula}, donde el
+primer corresponde al file descriptor del socket del cliente \footnote{En términos de este trabajo práctico, nos referiremos a alumno y cliente indistintamente.}en cuestión, y el segundo es un puntero a la estructura aula (la cual detallaremos más
+adelante).
+
+Los atributos los configuramos con la constante
+\textit{PTHREAD\_CREATE\_DETACHED}. Ésto lo hicimos pues no es necesario en
+nuestra implementación hacer un \textit{join} a un thread, y al estar
+\textit{detached} el trhead libera automáticamente sus recursos,
+ahorrándonos de tener estructuras que guarden los id de los threads y
+ahorrándonos también de tener algún tipo de estrategia de cuándo/cómo
+liberar los recursos del thread.
+
+Una vez que el thread sea llamado, el servidor (hilo maestro) destruirá el
+atributo creado.
+
+El thread empieza a correr con la función \textit{start\_routine}, que
+simplemente castea el puntero pasado como parámetro a la estructura
+\textit{args} para luego pasar los parámetros a la función
+\textit{atendedor\_de\_alumno}.
+
+Antes de analizar los cambios en la forma de atender a los alumnos, veamos
+cómo cambia la estructura \textit{t\_aula}.
+
+En la versión \textit{mono} bastaba con saber cuántas personas estaban en
+cada posición del aula, la cantidad de personas totales, y los rescatistas
+disponibles.
+
+En nuestra implementación de la versión \textit{multi} tenemos lo siguiente:
+\begin{verbatim}
+typedef struct {
+  int posiciones[ANCHO_AULA][ALTO_AULA];
+  int cantidad_de_personas;
+  int rescatistas_disponibles;
+  int para_salir;
+  bool saliendo;
+  pthread_mutex_t m_posiciones[ANCHO_AULA][ALTO_AULA];
+  pthread_mutex_t m_rescatistas;
+  pthread_mutex_t m_estado;
+  pthread_cond_t vc_rescatistas;
+  pthread_cond_t vc_estado;
+} t_aula;
+\end{verbatim}
+
+Se mantienen los datos usados anteriormente, pero ahora necesitamos
+asegurarnos de que no más de un alumno accederá a los recursos al mismo
+tiempo, pues esto generaría condiciones de carrera.
+
+Es por esto que se agregan los distintos mutexes y variables de condición. Los usos son los siguientes:
+
+\begin{itemize}
+\item \textbf{m\_posiciones[][]}, cada posición $i,j$ de la matriz tiene un
+mutex que regula el acceso a la posicion $i,j$ de \textit{posiciones}.
+\item \textbf{m\_rescatistas}, coordina el acceso a la variable
+\textit{rescatistas\_disponibles}.
+\item \textbf{m\_estado}, regula el acceso a las variables
+\textit{cantidad\_de\_personas, para\_salir, y saliendo}.
+\item \textbf{vc\_rescatistas}, sirve para simular el comportamiento de
+semáforos, tiene relacionada la variable \textit{rescatistas\_disponibles} y
+el mutex \textit{m\_rescatistas}.
+\item \textbf{vc\_estado}, variable de condición que tiene relacionada la
+variable entera \textit{para\_salir} y el mutex \textit{m\_estado}.
+\end{itemize}
+
+
+
+Veamos ahora \textit{atendedor\_de\_alumno}. La estructura de la función es
+similar a la de la versión del servidor mono, es decir, la conexión se
+establece de la misma forma, y los pasos que debe seguir el alumno para
+salir del aula son los mismos.
+
+Lo que sí cambia es la forma de realizar las acciones, pues hay que soportar
+la concurrencia de varios alumnos en un mismo aula.
+
+La primera modificación en las acciones del alumno se da en
+\textit{t\_aula\_ingresar}. Como ésta modifica la cantidad de personas
+totales, y la cantidad de alumnos en una posición, se debe garantizar acceso
+único a dichas variables. Por eso para incrementar la cantidad de personas
+totales se pide por el mutex \textit{m\_estado}, y para aumentar la cantidad
+de personas en una posición se pide por \textit{m\_posiciones[i][j]}, siendo
+$i,j$ la posición inicial del alumno.
+
+Para recibir e interpretar el mensaje del cliente, y para contestarle se siguen usando las funciones provistas por \textit{biblioteca.h}.
+
+Una modificación importante se da al momento de intentar moverse. El
+algoritmo es (conceptualmente) el mismo, lo que cambia es que ahora se
+necesita pedir por dos recursos compartidos por todos los alumnos. Éstos
+son, la posición en la cual está parado el alumno, llamemosla $i,j$, y la
+posición a la cual se quiere mover, llamemosla $k,l$.
+
+Como debemos asegurarnos que ambas posiciones se acceden y actualizan al
+mismo tiempo, tengo que pedir los mutex de ambas posiciones antes de cambiar
+alguna de las dos.
+
+Esta acción, podría generar deadlock si no se establece algún criterio en el
+orden de los pedidos. Por este motivo, establecimos un orden para pedir los
+mutexes, eliminando así la espera circular.
+
+El orden consiste en primero pedir la posición \textit{más chica},
+considerando a las posiciones con una relación de orden basada primero en la
+\textit{fila} y después en la \textit{columna}. Es decir, se pide por
+\textit{m\_posiciones[i][j]} primero y luego por
+\textit{m\_posiciones[k][l]}si $i < k \vee (i = k \wedge j < l)$, y si no se
+piden al revés.
+
+Una vez que el alumno consigue salir del aula tiene que ponerse la máscara y
+luego esperar a formar un grupo para efectivamente ser evacuado.
+
+Ésta primera acción ya requiere de una coordinación de recursos más
+sofisticada. En la versión mono, al haber sólo un alumno, siempre había un
+rescatista disponible; en cambio, ahora podría pasar que un  alumno tenga
+que esperar a que un rescatista se libere.
+
+Aquí es donde usaremos la variable de condición \textit{vc\_rescatistas}.
+Pues el alumno tendrá que esperar a que \textit{rescatistas\_disponibles}
+sea mayor a $0$.
+
+Para hacer ésto, utilizamos el esquema visto en clase. Es decir, pedimos por
+el mutex asociado, y con un while esperamos que
+\textit{rescatistas\_disponibles} sea mayor a $0$, haciendo
+\textit{pthread\_cond\_wait} sobre las variables mencionadas. Luego, una vez
+que tenemos acceso a los rescatistas, y sabemos que hay al menos uno libre,
+decrementamos la cantidad y liberamos el recurso. Luego \textit{ponemos la
+máscara} y pedimos otra vez por el recurso para incrementar la cantidad de
+rescatistas disponibles, y después lo liberamos.
+
+Puesta la máscara, ahora falta hacer que los alumnos salgan formando un
+grupo de 5, o si menor si no hay suficientes alumnos.
+
+Entonces, básicamente tenemos que implementar una barrera, para que cuando
+se alcanze un valor determinado, todos los alumnos que tenían que salir
+salgan, y los que no podían ponerse a formar grupo se queden esperando a que
+terminen de salir los demás.
+
+Con ésto en mente, el bool \textit{saliendo} nos indicará si hay un grupo
+que efectivamente está saliendo o no.
+
+Entonces el alumno primero espera a que el grupo que estaba saliendo (si lo
+hay) termine de salir, esto se hace verificando \textit{saliendo} con un
+while, utilizando la variable de condición \textit{vc\_estado}. 
+
+Una vez que el alumno sabe que no hay un grupo saliendo, empieza a formar uno
+nuevo, actualizando las variables \textit{cantidad\_de\_personas y
+para\_salir}. Cada alumno verifica si es el quinto en anotarse o si es el
+último alumno del aula, si pasa cualquiera de las dos situaciones,
+prende la variable \textit{saliendo}, para que los demás alumnos con
+intención de salir se queden esperando y para que los alumnos que estaban
+formando grupo sepan que pueden empezar a salir.
+
+Una vez que el alumno sale, decrementa \textit{para\_salir}, y luego
+verifica si él era el último del grupo en salir. Si lo era, entonces ya no
+hay gente saliendo, con lo cual pone en falso la variable \textit{saliendo}.
+
+Por último, el alumno manda un broadcast a la variable de condición
+\textit{vc\_estado}, despertanto a todos los alumnos y luego libera el mutex
+\textit{m\_estado}. Habilitando así a los demás alumnos del grupo a salir
+(si quedaba alguno), y habilitando a los que están esperando para formar un
+nuevo grupo que lo hagan.
 
 
 
