@@ -105,6 +105,7 @@ def main():
   for i in range(cant_clientes):
     cpid = os.fork()
     if cpid == 0:
+      random.seed(i)
       x = random.randint(0, 9)
       y = random.randint(0, 9)
       c = Cliente(host, port, str(i), (x, y))
