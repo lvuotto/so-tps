@@ -4,7 +4,7 @@ import os
 import socket
 import sys
 import time
-from paises import *
+import random
 
 
 class TCPFramer:
@@ -105,7 +105,9 @@ def main():
   for i in range(cant_clientes):
     cpid = os.fork()
     if cpid == 0:
-      c = Cliente(host, port, paises[i], (5, 5))
+      x = random.randint(0, 9)
+      y = random.randint(0, 9)
+      c = Cliente(host, port, str(i), (x, y))
       moverme(c)
       break
     else:
