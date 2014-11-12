@@ -218,7 +218,6 @@ void atendedor_de_alumno(int socket_fd, t_aula *el_aula)
   /* Si hay personas saliendo, espero sin modificar las cantidades. */
   pthread_mutex_lock(&el_aula->m_estado);
   while (el_aula->saliendo) {
-    printf("%s: esperando `el_aula->saliendo`...\n", alumno.nombre);
     pthread_cond_wait(&el_aula->vc_estado, &el_aula->m_estado);
   }
 
@@ -231,7 +230,6 @@ void atendedor_de_alumno(int socket_fd, t_aula *el_aula)
                       el_aula->cantidad_de_personas == 0;
 
   while (!el_aula->saliendo) {
-    printf("%s: esperando `!el_aula->saliendo`...\n", alumno.nombre);
     pthread_cond_wait(&el_aula->vc_estado, &el_aula->m_estado);
   }
   el_aula->para_salir--;
@@ -313,9 +311,6 @@ void servidor(t_aula *aula)
       thread_args *args = (thread_args *) malloc(sizeof(*args));
       args->fd = socketfd_cliente;
       args->aula = aula;
-      fprintf(stderr, "[dbg]: abriendo socket %d [%d]...\n",
-              socketfd_cliente,
-              args->fd);
 
       pthread_t tid;
       pthread_attr_t attr;
