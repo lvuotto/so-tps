@@ -1,7 +1,9 @@
-var map = function () {
+function () {
   if (this.total_votes >= 2000)
-		emit("mas_de_2000", {
-			titulo: this.title,
-			puntaje: this.score
-		});
-};
+    emit("mas_de_2000", {
+      arreglo: [ {
+        titulo: this.title,
+        puntaje: this.score,
+      } ]
+    });
+}

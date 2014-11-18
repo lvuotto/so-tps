@@ -1,3 +1,3 @@
-var finalize = function (k, v) {
-	return v;
-};
+function (k, v) {
+  return v;
+}

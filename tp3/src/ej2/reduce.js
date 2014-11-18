@@ -1,8 +1,6 @@
-/**
- * TODO:
- *  - Probarlo con selection sort.
- **/
-var reduce = function (k, v) {
-  v.sort();
-	return v.slice(0, 12);
-};
+function (k, v) {
+  var r = [];
+  for (var i = 0; i < v.length; i++)
+    r = r.concat(v[i].arreglo);
+  return { arreglo: r };
+}
