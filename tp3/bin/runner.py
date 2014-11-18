@@ -1,4 +1,4 @@
- #!/usr/bin/python
+#!/usr/bin/python
 from os import listdir
 from os.path import join, isfile
 from bson.code import Code
@@ -8,7 +8,7 @@ import argparse
 conn = MongoClient()
 db = conn.reddit
 
-EJS_DIRS = ['ej1','ej2']
+EJS_DIRS = [ 'ej1' ]
 
 def run(code, incoll = 'posts', outcoll = 'default'):
     print "Corriendo map_reduce sobre %s.%s" % ("reddit", incoll)

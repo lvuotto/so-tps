@@ -5,7 +5,7 @@ import json
 
 """ Script para re-importar los posts a la base de datos """
 
-reader = csv.DictReader(open('../data/redit.csv'),
+reader = csv.DictReader(open('data/redit.csv'),
         fieldnames=('image_id','unixtime','rawtime','title','total_votes',
             'reddit_id','number_of_upvotes','subreddit','number_of_downvotes',
             'localtime','score','number_of_comments','username'))
