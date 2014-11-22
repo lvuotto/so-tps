@@ -19,7 +19,12 @@ var finalize = function (k, v) {
   v.arreglo.sort(function (a, b) {
     return b.puntaje - a.puntaje;
   });
-  return v.arreglo.slice(0, 12);
+  var p = v.arreglo.slice(0, 12);
+	var res = new Array(p.length);
+	for (var i = 0; i < p.length; i++){
+		res[i] = p[i].titulo;
+	}
+	return res;
 };
 
 var options = {
@@ -34,4 +39,4 @@ db = conn.getDB("reddit");
 
 db.posts.mapReduce(map, reduce, options);
 var r = db.ej2.find()[0];
-printjson(r);
+print(r.value.join("\n"));

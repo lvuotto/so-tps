@@ -34,5 +34,7 @@ db = conn.getDB("reddit");
 
 
 db.posts.mapReduce(map, reduce, options);
-var r = db.ej1.find().sort({ "value.avg": -1 })[0]
-printjson(r);
+var r = db.ej1.find().sort({ "value.avg": -1 })[0];
+var sr = r._id;
+print(sr);
+	
