@@ -1,0 +1,99 @@
+\documentclass[a4paper]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
+\usepackage{charter}   % tipografia
+\usepackage{graphicx}
+\usepackage{makeidx}
+
+\usepackage{float}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{amsfonts}
+\usepackage{sectsty}
+\usepackage{wrapfig}
+\usepackage{listings}
+\usepackage{caption}
+
+\usepackage{hyperref} %las entradas del índice tienen links
+\hypersetup{
+    colorlinks=true,
+    linktoc=all,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\input{codesnippet}
+\input{page.layout}
+\usepackage{underscore}
+\usepackage{caratula}
+\usepackage{url}
+
+\usepackage{color}
+\usepackage{clrscode3e} % para el pseudocodigo
+
+
+
+
+\begin{document}
+
+\lstset{
+  language=C++,
+  backgroundcolor=\color{white},   % choose the background color
+  basicstyle=\footnotesize,        % size of fonts used for the code
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+}
+
+\thispagestyle{empty}
+\materia{Sistemas Operativos}
+\submateria{Segundo Cuatrimestre de 2014}
+\titulo{Trabajo Práctico III: Sistemas Distribuidos}
+\integrante{Caravario, Martín}{470/12}{martin.caravario@gmail.com}
+\integrante{Hosen, Federico}{825/12}{fhosen@hotmail.com}
+\integrante{Vuotto, Lucas}{385/12}{lvuotto@dc.uba.ar}
+
+\maketitle
+\newpage
+
+\thispagestyle{empty}
+\vfill
+\thispagestyle{empty}
+\vspace{1.5cm}
+\tableofcontents
+\newpage
+
+
+%\normalsize
+\newpage
+\section{Introducción}
+
+
+\newpage
+\section{Implementación Map-Reduce}
+
+\subsection{Ejecricio 1}
+
+\subsection{Ejecricio 2}
+
+\subsection{Ejecricio 3}
+
+\subsection{Ejecricio 4}
+
+\subsection{Ejecricio 5}
+
+
+\newpage
+\section{Investigación}
+
+
+\newpage
+\section{Conclusión}
+
+
+\end{document}

@@ -22,4 +22,8 @@ run-ej4:
 run-ej5:
 	mongo src/ej5.js
 
-.PHONY: all db run run-ej1 run-ej2 run-ej3 run-ej4 run-ej5
+informe:
+	make -C informe
+	xdg-open bin/informe.pdf
+
+.PHONY: all db run run-ej1 run-ej2 run-ej3 run-ej4 run-ej5 informe
