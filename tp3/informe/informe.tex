@@ -77,19 +77,47 @@
 \newpage
 \section{Implementación Map-Reduce}
 
-\subsection{Ejecricio 1}
+\subsection{Ejercicio 1}
 
-\subsection{Ejecricio 2}
+\subsection{Ejercicio 2}
 
-\subsection{Ejecricio 3}
+\subsection{Ejercicio 3}
 
-\subsection{Ejecricio 4}
+\subsection{Ejercicio 4}
 
-\subsection{Ejecricio 5}
+\subsection{Ejercicio 5}
 
 
 \newpage
 \section{Investigación}
+
+La motivación del paper nace a partir de utilizar el paradigma \textit{map-reduce} en grandes clusters compartidos entre varios usuarios, dado que concentrar largos volúmenes de datos en un mismo cluster es económicamente más barato que tener clusters privados para cada usuario, y el benificio a la hora de realizar diversas tareas, como podría ser data-minning o búsqueda de spam, aumenta considerablemente.
+
+El problema es que al momento de administrar los recursos, el scheduler implementado hasta el momento presenta algunos problemas que reducen de forma considerable el rendimiento al correr ciertos tipos de trabajos. Concretamente, el problema se da al correr grandes trabajos en conjunto con \textit{queries}, es decir, trabajos de interacción con el usuario donde es importante el tiempo de respuesta, y no sólo el \textit{throughput}. Sin embargo, al tratar de encarar el problema concreto de \textit{scheduling} surgen dos incovenientes más, inherentes al paradigma \textit{map-reduce} en clusters multiusuario: la localía de datos, es decir, la necesidad de correr tareas sobre datos almacenados localmente, en contraposición a utilizar datos que no se encuentran disponibles en el mismo lugar físico, para poder así ganar performance y aumentar el \textit{throughput}, y la interdepencia entre \textit{reduce} y \textit{map}, es decir, el tener que esperar obligatoriamente la finalización de la función \textit{map} para poder terminar de ejecutar la función \textit{reduce}.
+
+El scheduler usado hasta el momento es el \textit{Hadoop's FIFO scheduler}, que básicamente utiliza una política \textbf{FIFO} con cinco niveles de privilegios.  Como hemos visto en las clases, éste tipo de política es poco justo con respecto a las tareas cortas e interactivas, pues si ya están encoladas grandes tareas que insumen mucho tiempo de recursos, estas tareas cortas deberán esperar mucho tiempo para correr, disminuyendo considerablemente el tiempo de respuesta.
+
+Una primera aproximación a la solución es Hadoop On Demand (HOD), que establece clusters virtuales\footnote{Llamamos cluster virtual a un conjunto de nodos agrupados que el usuario ve como un cluster privado.} fijos para cada usuario. El problema que conlleva dicha solución es que al tener los datos distribuidos por todo el cluster (pues así funciona HDFS) al querer acceder a un dato que no está en uno de los nodos del cluster privado asignado, se disminuye el \textit{throughput} y el tiempo de respuesta, pues al buscar el dato fuera del nodo, el tiempo de acceso es mayor.
+
+Sin embargo, el problema mencionado anteriormente no es el único, al distribuir los recursos de forma estática en cada cluster privado, cuando los nodos no están siendo utilizados no pueden ser reasignados a otros trabajos, desperdiciando así recursos del cluster.
+
+Para mitigar los problemas descriptos previamente, los autores del paper proponen una política de \textit{scheduling} llamada \textbf{FAIR}, la cual plantea 2 objetivos principales:
+\begin{itemize}
+  \item \textbf{isolation}, proveer a cada usuario un cluster virtual para generar la ilusión de disponer de un cluster privado, y
+	\item \textbf{statistical multiplexing}, reasignar dinámicamente los recursos inutilizados.
+\end{itemize}
+
+Para lograr esto, se propone un sistema de jerarquías de 2 niveles de distribución de recursos: entre \textit{pools} de tareas, a nivel global, y entre tareas, a nivel de cada \textit{pool}. Los \textit{pools} son abstracciones utilizadas por el \textit{scheduler} para agrupar recursos y cada uno cuenta con una cantidad mínima de recursos necesarios y una demanda de recursos. El model garantiza que cada \textit{pool} reciba su cantidad mínima de recursos (a menos que la demanda sea menor a esta cantidad), ya que este valor se elige cumpliendo que la suma de la cantidad mínima de recursos de cada \textit{pool} no supere la capacidad total del sistema.
+
+El \textit{scheduler} asigna los recursos en 3 pasos:
+\begin{enumerate}
+	\item A todos los \textit{pools} cuya demanda sea menor a la cantidad mínima recursos, se les asigna tantos recursos como demanda tengan.
+	\item Al resto de los \textit{pools} se les asigna tantos recursos como cantidad mínima necesiten. Esto da la sensación a los usuarios de operar sobre un cluster privado, pues cada \textit{pool} tiene o bien los recursos necesarios para satisfacer su demanda o bien la cantidad mínima de recursos necesitados, logrando el objetivo de \textbf{isolation}.
+	\item Se distribuyen los recursos restantes hasta llegar a satisfacer la demanda o agotar los recursos, siendo los \textit{pools} de menor cantidad de recursos adquiridos los primeros en recibir este beneficio. Esto cumple con el objetivo de \textbf{statistical multiplexing}, pues cuando la demanda de un \textit{pool} no supera su mínimo de recursos, los recursos sobrantes no se utilizarían y esto paso permite redistribuirlos.
+\end{enumerate}
+
+A la hora de reasignar recursos frente a la llegada de un nuevo trabajo y nuevas demandas, el \textit{scheduler} necesita liberar y reasignar recursos de los \textit{pools} para el nuevo trabajo en un tiempo relativamente corto, con el fin de mantener el objetivo de \textbf{isolation}. Para lograr esto, se establecen 2 tiempos límites: $T_{min}$ y $T_{fair}$, donde $T_{min}$ es el tiempo a esperar para matar tareas para y obtener recursos, si es que el nuevo trabajo no los tenía, y $T_{fair}$ es el tiempo a esperar luego de haberse cumplido $T_{min}$ para matar más tareas en caso de no tener disponibles la cantidad de recursos justos para el nuevo trabajo. De este modo, el trabajo empieza a correr tan pronto como lo haría en un cluster privado. Cabe destacar que, al matar a una tarea para asignar sus recursos a un nuevo trabajo, se disminuye el \textit{throughput}.
+
 
 
 \newpage
