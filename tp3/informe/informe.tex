@@ -72,7 +72,20 @@
 %\normalsize
 \newpage
 \section{Introducción}
+A lo largo de este informe se dará una explicación detallada sobre la
+implementación de los ejercicios; luego se ahondará sobre el paper a
+investigar, sus propuestas, la evaluación de las mismas, su discusión y su
+conclusión.
 
+En la primer sección, para cada ejercicio, se explicita qué hace cada función y
+por qué el \textit{reduce} respeta sus propiedades. Si además de la utilización
+de \textit{map/reduce/finalize}, para resolver el ejercicio fue necesario hacer
+una \textit{query} o algún otro tipo de cómputo sobre la collección generada,
+se explicitará. Por último se adjunta el resultado final de cada ejercicio.
+
+La segunda y última sección es la explicación del paper, hecha en forma de un texto
+narrativo que sigue los lineamientos del texto científico en cuestión, seguido
+por la conlusión.
 
 \newpage
 \section{Implementación Map-Reduce}
@@ -80,14 +93,14 @@
 A la hora de llevar a cabo las implementaciones de las funciones \textit{map},
 \textit{reduce} y \textit{finalize} de cada ejercicio, se optó por crear
 archivos distintos a los provistos por la cátedra para satisfacer necesidades
-de flexibilidad a la hora de generar y manipular los resultados.
+de flexibilidad al momento de generar y manipular los resultados.
 
 Se adjunta un \verb|Makefile| en la entrega con el objetivo de facilitar la
 ejecución de los ejercicio solicitados. Los objetivos del mismo son:
 \begin{itemize}
   \item \verb|all|, objetivo por defecto, que se encarga de crear la base de
   datos con todas sus entradas y ejecutar los ejercicios,
-  \item \verb|run|, que solo corre los ejercicios, asumiendo que la base de
+  \item \verb|run|, que sólo corre los ejercicios, asumiendo que la base de
   datos fue creada,
   \item \verb|db|, que solo crea la base de datos, y
   \item \verb|run-ejN|, donde N toma un valor del 1 al 5, que solo corre el
@@ -119,15 +132,20 @@ de puntaje. Para lograrlo, se implementaron las funciones \textit{map},
 
 El resultado de aplicar el proceso de \textit{map-reduce} es volcado a una
 colección llamada \textbf{ej1}. Esta es recorrida linealmente para encontrar la
-entrada con mayor valor en el campo \verb|value|, que, como se explico
+entrada con mayor valor en el campo \verb|value|, que, como se explicó
 previamente, tiene el puntaje promedio \textbf{por entrada} de cada
 \textit{subreddit}. Luego, para obtener el \textit{subreddit} con mayor puntaje
 promedio por entrada, solo basta ver la clave del primer documento de la
 colección para saber cuál es el \textit{subreddit} buscado.
 
+\subsubsection{Resultado}
+\begin{verbatim}
+GirlGamers
+\end{verbatim}
+
 \subsection{Ejercicio 2}
-En este ejercicio se quiere saber la los doce títulos con mayor puntaje,
-siempre y cuando este supere los $2000$ puntos. Para la realización se
+En este ejercicio se quieren conocer los doce títulos con mayor puntaje,
+siempre y cuando superen los $2000$ puntos. Para la realización se
 implementaron las funciones \textit{map}, \textit{reduce} y \textit{finalize}
 del siguiente modo:
 \begin{itemize}
@@ -136,7 +154,7 @@ del siguiente modo:
   \textit{acumuladora} con un único campo \verb|arreglo|, la cual posée un
   arreglo de estructuras formado por una única estructura con campos
   \verb|titulo| y \verb|puntaje|, inicializados en el título y el puntaje del
-  post, respectivamente. Luego, esta estructura acumuladora es emitida con la
+  post respectivamente. Luego, esta estructura acumuladora es emitida con la
   clave ``\verb|mas_de_2000|''. Esto se realiza para poder luego acumular todas
   las entradas y ordenarlas.
   \item \verb|reduce(k, v)|: genera un arreglo vacío \verb|r| y se recorre el
@@ -165,6 +183,23 @@ colección llamada \textbf{ej2} y se imprime el valor de la única entrada que
 puede tener dicha colección. Dicho valor es una arreglo con a los títulos
 buscados, separados por saltos de línea.
 
+\subsubsection{Resultado}
+
+\begin{verbatim}
+The Bus Knight
+So my little cousin posted on FB that he was bored and gave everyone his new phone number... (pic)
+My friend calls him &quot;Mr Ridiculously Photogenic Guy&quot;
+This is called humanity.
+President Obama's new campaign poster
+Genius
+Poster ad for the Canadian Paralympics
+I'm sorry pinata bro
+Walked in on my son watching TV like this. Freaked me out for a second.
+When I found out I could upvote by pressing 'A'
+Babe caught me slippin'.
+Watching my dad (a GP doctor) watch House is more entertaining than the show
+\end{verbatim}
+
 \subsection{Ejercicio 3}
 El objetivo de este ejercicio es obtener la cantidad promedio de comentarios de
 los 10 posts con mayor puntaje. Para obtener este valor, se implementaron las
@@ -192,6 +227,11 @@ manera:
 El resultado de aplicar el proceso de \textit{map-reduce} es volcado a una
 colección llamada \textbf{ej3} y se imprime el valor de la única entrada que
 puede o tener dicha colección.
+
+\subsubsection{Resultado}
+\begin{verbatim}
+1428.5
+\end{verbatim}
 
 \subsection{Ejercicio 4}
 El fin de este ejercicio es encontrar al usuario con mayor cantidad de
@@ -223,10 +263,15 @@ es decir, los registros pertenecientes a aquellos usuarios que tienen a lo sume
 valor del campo \verb|votos|. Una vez hecho esto, se imprime la clave
 correspondiente al primer valor, es decir, el nombre de usuario.
 
+\subsubsection{Resultado}
+\begin{verbatim}
+lepry
+\end{verbatim}
+
 \subsection{Ejercicio 5}
 En este ejercicio se pide encontrar la cantidad de palabras presentes en el
 título de cada los posts de los \textit{subreddits} cuyo puntaje se encuentre
-entre 280 y 300. Para obtener este resultado, se implementaron las funciones
+entre 280 y 300. Para obtener este resultado se implementaron las funciones
 \textit{map}, \textit{reduce} y \textit{finalize} del siguiente modo:
 \begin{itemize}
   \item \verb|map()|: se crea una estructura con campos \verb|puntaje|,
@@ -248,11 +293,22 @@ entre 280 y 300. Para obtener este resultado, se implementaron las funciones
 \end{itemize}
 
 El resultado de aplicar el proceso de \textit{map-reduce} es volcado a una
-colección llamada \textbf{ej5}. En esta se filtran los resultados que tengan el
+colección llamada \textbf{ej5}. En ésta se filtran los resultados que tengan el
 campo \verb|value| (la cantidad de palabras en el título) el valor $-1$, es
 decir, se dejan de lado aquellos \textit{subreddits} cuyo puntaje \textbf{no}
 se encuentre entre 280 y 300. Los \textit{sureddits} restantes son ordenados
 decrecientemente e impresos.
+
+\subsubsection{Resultado}
+\begin{verbatim}
+24
+13
+6
+6
+4
+4
+4
+\end{verbatim}
 
 \newpage
 \section{Investigación}
@@ -368,12 +424,12 @@ anteriormente) más importantes del \textit{map-reduce} que impactan sobre el
   \textit{reduce} no puede finalizar hasta que todos los \textit{maps} hayan
   terminado. De esta forma, los recursos ocupados por tareas de reducción
   estarán siendo desperdiciados si están a la espera de la finalización de los
-  \textit{maps}. Recursos que podrían ser utilizados por otros trabajos en
+  \textit{maps}, recursos que podrían ser utilizados por otros trabajos en
   espera.
 \end{itemize}
 
 Con respecto al primer ítem, en el paper se analizan dos situaciones en
-concreto, la primera es la poca localidad datos que logran los trabajos 
+concreto. La primera es la poca localidad datos que logran los trabajos 
 chicos, debido a que al ser chicos, tienen pocos bloques de datos sobre los
 cuales trabajar, con lo cual la probabilidad de que se le asigne un nodo con el
 bloque necesario es baja, de hecho es directamente proporcional al tamaño de
@@ -407,11 +463,11 @@ en las primeras asignaciones, no tendrá que correr siempre a nivel no-local.
 
 Sin embargo, si no es implementado inteligentemente puede no ser efectivo. En
 términos de tiempo de respuesta, lo óptimo es no esperar para poner a correr
-las tareas de uso intensivo de CPU, pero sí retrasas los trabajos que utilizen
+las tareas de uso intensivo de CPU, pero sí retrar los trabajos que utilizen
 mucha entrada y salida.
 
 Otro problema con éste mecanismo para mejorar la localidad es que se pueden
-generar \textit{hotpots}, es decir, nodos que son requeridos por varias tareas,
+generar \textit{hotspots}, es decir, nodos que son requeridos por varias tareas,
 generando así un cuello de botella en dicho nodo, y dejando los otros nodos
 sin utilizar. La solución a ésto fue mencionada en el párrafo anterior, la idea
 es clasificar a la tarea según su uso de CPU y de IO, dejando correr
@@ -426,12 +482,11 @@ entrada y salida.
 
 Con respecto a la interdependencia del \textit{map-reduce} el problema es
 claro, trabajos largos que reservan estaciones de trabajo para
-aplicar la función de reducción pero el \textit{map} está todavía
-ejecutándose, dejando sin recursos (reservados pero en desuso) a otros
-trabajos.
+aplicar la función de reducción con el \textit{map} aún ejecutándose, dejando
+sin recursos (reservados pero en desuso) a otros trabajos.
 
-Los autores analizan el problema y caracterizan su origen en que se conciben a
-operaciones con distintos requerimientos de recursos como una sola tarea. Pues
+Los autores analizan el problema y caracterizan su origen en concibir a dos
+operaciones con distintos requerimientos de recursos como una sola tarea, pues
 en cualquier momento dado, la función de reducción está usando la red para
 copiar las claves intermedias del \textit{map}, o está haciendo uso intensivo
 del CPU para aplicar la función en sí, pero nunca ambas.
@@ -450,10 +505,10 @@ dedicados a cada fase hay para cada trabajo.
 
 Para evaluar las soluciones propuestas, los autores realizaron varios
 experimentos, sobre distintos escenarios. No se ahondará sobre los detalles de
-los experimentos, pero sí en serán evaluados sus resultados.
+los experimentos, pero sí serán evaluados sus resultados.
 
 En términos de tiempo de respuesta, el scheduler propuesto en el paper
-(\textit{FAIR}), en conjunto con la téctnica \textit{Copy-Compute Splitting} 
+(\textit{FAIR}), en conjunto con la técnica \textit{Copy-Compute Splitting} 
 logran mejoras (en comparación con \textit{FIFO}, la implementación hasta el
 momento) para trabajos chicos de hasta $2$x en 
 promedio, y hasta un $4.6$x en el mejor caso; en cambio, para trabajos grandes,
@@ -464,7 +519,7 @@ medianos, quedando casi igual en los trabajos grandes.
 
 Inclusive al aplicar \textit{Copy-Compute Splitting} en \textit{FIFO} se logra
 una mejoría de hasta $1.2$x en el mejor caso, y $1$x en el caso promedio
-trabajos chicos y medianos, a costo de tener una ligera pérdida en trabajos
+trabajos en chicos y medianos, a costo de tener una ligera pérdida en trabajos
 grandes.
 
 En términos de localía de datos, el resultado de usar \textit{Delay Scheduling}
@@ -474,7 +529,7 @@ más grande en el ancho de banda (en comparación con dónde fueron hechos los
 experimentos) el impacto de dicha mejora sí sería significativa.
 
 Analizando \textit{Delay Scheduling} en más detalle, los autores probaron cómo
-afecta éste en el \textit{throughput} en un cluster privado de pequeño. Las
+afecta éste en el \textit{throughput} en un cluster privado pequeño. Las
 mejoras en localía de datos (nodo donde está el dato) fueron de hasta un $75\%$
 y hasta un $100\%$ en localía a nivel rack. Y con respecto al
 \textit{throughput} las mejorías llegan hasta $1.7$x, aunque se espera que
@@ -491,8 +546,6 @@ La utilización de la política \textit{IO-rate biasing} junto con \textit{Delay
 Scheduling} alcanza mejoras de hasta un $15\%$ para los trabajos de entrada
 y salida, y hasta un $44\%$ para los trabajos de uso intensivo de CPU.
 
-\newpage
-\section{Discusión}
 A lo largo del paper, se hace mención a dos grandes problemas que presenta la
 utilización del paradigma \textit{map-reduce} en clusters que pueden ser
 generalizados a dos problemas generales a los clusters de uso intensivos de
@@ -537,9 +590,7 @@ enviados, logrando así que los usuarios obtengan sus resultados sin tener que
 sufrir la espera de trabajos largos, como podría suceder en una política
 \textit{FIFO}.
 
-
-\newpage
-\section{Conclusión}
+\subsection{Conclusión}
 Como mencionamos al principio de la explicación, tener un cluster compartido
 permite utilizar los recursos disponibles mejor de lo que se usarían si
 estuviesen divididos en varios clusters privados (más pequeños), hasta permite
