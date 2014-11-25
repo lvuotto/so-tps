@@ -1,4 +1,5 @@
 BINS=src/ej1.js src/ej2.js src/ej3.js src/ej4.js src/ej5.js
+MONGO=mongo --quiet
 
 all: db run
 
@@ -6,21 +7,26 @@ db:
 	bin/csv_loader.py
 
 run: $(BINS)
+	$(MONGO) src/ej1.js
+	$(MONGO) src/ej2.js
+	$(MONGO) src/ej3.js
+	$(MONGO) src/ej4.js
+	$(MONGO) src/ej5.js
 
 run-ej1:
-	mongo src/ej1.js
+	$(MONGO) src/ej1.js
 
 run-ej2:
-	mongo src/ej2.js
+	$(MONGO) src/ej2.js
 
 run-ej3:
-	mongo src/ej3.js
+	$(MONGO) src/ej3.js
 
 run-ej4:
-	mongo src/ej4.js
+	$(MONGO) src/ej4.js
 
 run-ej5:
-	mongo src/ej5.js
+	$(MONGO) src/ej5.js
 
 informe:
 	make -C informe

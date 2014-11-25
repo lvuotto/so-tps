@@ -1,26 +1,24 @@
 var map = function () {
-  var key = this.subreddit;
-  var value = {
-    score_sum: this.score,
-    count: 1
+  var k = this.subreddit;
+  var v = {
+    "puntaje": this.score,
+    "cantidad": 1
   };
-  emit(key, value);
+  emit(k, v);
 };
 
 var reduce = function (k, v) {
-  var reduced_v = { score_sum: 0, count: 0 }; 
-
+  var r = { "puntaje": 0, "cantidad": 0 }; 
   for (var i = 0; i < v.length; i++){
-    reduced_v.score_sum += v[i].score_sum;
-    reduced_v.count += v[i].count;
+    r.puntaje += v[i].puntaje;
+    r.cantidad += v[i].cantidad;
   }
 
-  return reduced_v;
+  return r;
 };
 
-var finalize = function (k, reduced_v) {
-  reduced_v.avg = reduced_v.score_sum / reduced_v.count;
-  return reduced_v;
+var finalize = function (k, rv) {
+  return rv.puntaje / rv.cantidad;
 };
 
 var options = {
@@ -34,7 +32,6 @@ db = conn.getDB("reddit");
 
 
 db.posts.mapReduce(map, reduce, options);
-var r = db.ej1.find().sort({ "value.avg": -1 })[0];
-var sr = r._id;
-print(sr);
-	
+var r = db.ej1.find().sort({ "value": -1 });
+if (r.hasNext())
+  print(r.next()._id);
