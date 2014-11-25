@@ -34,5 +34,3 @@ db = conn.getDB("reddit");
 db.posts.mapReduce(map, reduce, options);
 var r = db.ej5.find({ "value": { $gt: -1 } }).sort({ "value": -1 });
 r.forEach(function (v) { print(v.value); });
-/*while (r.hasNext())
-  print(r.next().value);*/

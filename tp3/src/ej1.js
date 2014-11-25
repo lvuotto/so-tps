@@ -32,6 +32,12 @@ db = conn.getDB("reddit");
 
 
 db.posts.mapReduce(map, reduce, options);
-var r = db.ej1.find().sort({ "value": -1 });
-if (r.hasNext())
-  print(r.next()._id);
+var r = db.ej1.find();
+if (r.hasNext()) {
+  var m = r.next();
+  while (r.hasNext()) {
+    var v = r.next();
+    m = v.value > m.value ? v : m;
+  }
+  print(m._id);
+}

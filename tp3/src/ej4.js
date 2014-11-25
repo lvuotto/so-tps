@@ -28,6 +28,12 @@ db = conn.getDB("reddit");
 
 
 db.posts.mapReduce(map, reduce, options);
-var r = db.ej4.find().sort({ "value.votos": -1 });
-if (r.hasNext())
-  print(r.next()._id);
+var r = db.ej4.find({ "value.votos": { $gt: -1 } });
+if (r.hasNext()) {
+  var m = r.next();
+  while (r.hasNext()) {
+    var v = r.next();
+    m = v.value.votos > m.value.votos ? v : m;
+  }
+  print(m._id);
+}
