@@ -77,16 +77,182 @@
 \newpage
 \section{Implementación Map-Reduce}
 
+A la hora de llevar a cabo las implementaciones de las funciones \textit{map},
+\textit{reduce} y \textit{finalize} de cada ejercicio, se optó por crear
+archivos distintos a los provistos por la cátedra para satisfacer necesidades
+de flexibilidad a la hora de generar y manipular los resultados.
+
+Se adjunta un \verb|Makefile| en la entrega con el objetivo de facilitar la
+ejecución de los ejercicio solicitados. Los objetivos del mismo son:
+\begin{itemize}
+  \item \verb|all|, objetivo por defecto, que se encarga de crear la base de
+  datos con todas sus entradas y ejecutar los ejercicios,
+  \item \verb|run|, que solo corre los ejercicios, asumiendo que la base de
+  datos fue creada,
+  \item \verb|db|, que solo crea la base de datos, y
+  \item \verb|run-ejN|, donde N toma un valor del 1 al 5, que solo corre el
+  ejercicio N.
+\end{itemize}
+
 \subsection{Ejercicio 1}
+En este ejercicio se pide obtener el \textit{subreddit} con la mayor cantidad
+de puntaje. Para lograrlo, se implementaron las funciones \textit{map},
+\textit{reduce} y \textit{finalize} del siguiente modo:
+\begin{itemize}
+  \item \verb|map()|: genera una estructura con los campos \verb|puntaje|, que
+  vale el puntaje que tiene el post, y \verb|cantidad|, que se utilizará para
+  guardar la cantidad de post que tiene cada \textit{subreddit}, tomando el
+  valor inicial $1$. Esta estructura es emitida para ser procesado por el
+  \textit{reduce} usando el nombre del \textit{subreddit} como clave.
+  \item \verb|reduce(k, v)|: genera una estructura estructura con mismos campo
+  que la generada en la función \verb|map| que se utilizará para acumular
+  resultados, iniciando sus campos en $0$. Luego se recorre el arreglo
+  \verb|v| y se suman los puntajes y las cantidades con los de la estructura
+  utilizada para acumulación. Esto permite mantener los 3 aspectos necesarios
+  de la función \textit{reduce}: la asociatividad y conmutatividad se
+  desprenden de la suma y la idempotencia proviene del hecho de inicializar los
+  campos en $0$ antes de realizar las operaciones de acumulación.
+  \item \verb|finalize(k, rv)|: solamente retorna la división entra la
+  sumatoria de los puntajes y la cantidad de entradas como único valor asociado
+  a la clave, es decir, al \textit{subreddit} en cuestión.
+\end{itemize}
+
+El resultado de aplicar el proceso de \textit{map-reduce} es volcado a una
+colección llamada \textbf{ej1}. Esta es recorrida linealmente para encontrar la
+entrada con mayor valor en el campo \verb|value|, que, como se explico
+previamente, tiene el puntaje promedio \textbf{por entrada} de cada
+\textit{subreddit}. Luego, para obtener el \textit{subreddit} con mayor puntaje
+promedio por entrada, solo basta ver la clave del primer documento de la
+colección para saber cuál es el \textit{subreddit} buscado.
 
 \subsection{Ejercicio 2}
+En este ejercicio se quiere saber la los doce títulos con mayor puntaje,
+siempre y cuando este supere los $2000$ puntos. Para la realización se
+implementaron las funciones \textit{map}, \textit{reduce} y \textit{finalize}
+del siguiente modo:
+\begin{itemize}
+  \item \verb|map()|: se descartan las entradas con menos de $2000$ votos en
+  total. Con las entradas no descartadas, se genera una estructura
+  \textit{acumuladora} con un único campo \verb|arreglo|, la cual posée un
+  arreglo de estructuras formado por una única estructura con campos
+  \verb|titulo| y \verb|puntaje|, inicializados en el título y el puntaje del
+  post, respectivamente. Luego, esta estructura acumuladora es emitida con la
+  clave ``\verb|mas_de_2000|''. Esto se realiza para poder luego acumular todas
+  las entradas y ordenarlas.
+  \item \verb|reduce(k, v)|: genera un arreglo vacío \verb|r| y se recorre el
+  arreglo \verb|v|, concatenándole a \verb|r| los campos \verb|arreglo| de cada
+  ítem del arreglo \verb|v|, para finalmente devolver una nuevo estructura
+  acumuladora en la cual su campo \verb|arreglo| valdrá \verb|r|. De este modo,
+  se logra emitir un único resultado en el proceso de \textit{map-reduce}, la
+  cual tendrá como clave ``\verb|mas_de_2000|'' y, como valor, un arreglo en el
+  cual están presentes todos los posts con más de $2000$ votos. Los 3
+  requerimientos de la función \textit{reduce} son mantenidos: la asociatividad
+  y la conmutatividad se desprenden de la concatenación (si se consideran a los
+  arreglos como conjuntos y la concatenación como únion, que es el caso, pues
+  el ordenamiento necesarios para obtener a los 12 mejores se realiza en la
+  función \textit{finalize}) y la idempotencia se obtiene al inicializar la
+  variable de acumulación \verb|r| como un arreglo vacío.
+  \item \verb|finalize(k, rv)|: el parámetro \verb|rv| de la función contiene
+  una estructura acumuladora cuyo campo \verb|arreglo| consta con el título y
+  el puntaje de \textbf{todos} los posts con al menos $2000$ votos. Este
+  arreglo es ordenado por puntaje y se extraen los 12 mejores. Con estos se
+  crea un nuevo arreglo que solo contiene los título de esos posts, obtienendo
+  así el resultado buscado.
+\end{itemize}
+
+El resultado de aplicar el proceso de \textit{map-reduce} es volcado a una
+colección llamada \textbf{ej2} y se imprime el valor de la única entrada que
+puede tener dicha colección. Dicho valor es una arreglo con a los títulos
+buscados, separados por saltos de línea.
 
 \subsection{Ejercicio 3}
+El objetivo de este ejercicio es obtener la cantidad promedio de comentarios de
+los 10 posts con mayor puntaje. Para obtener este valor, se implementaron las
+funciones \textit{map}, \textit{reduce} y \textit{finalize} de la siguiente
+manera:
+\begin{itemize}
+  \item \verb|map()|: se emplea la misma estrategia de crear una estructura
+  acumuladora del mismo modo que el visto en el \textbf{ejercicio 2} y se emite
+  dicha estructura junto con la clave ``\verb|por_puntaje|''.
+  \item \verb|reduce(k, v)|: de nuevo se realiza el mismo procedimiento que en
+  la función \textit{reduce} del \textbf{ejercicio 2}. Sin embargo, antes de
+  retornar la estructura acumuladora, el arreglo \verb|r| es ordenado
+  decrecientemente por puntaje y solo se conservan sus 10 primeros elementos.
+  Aún con este cambio se siguen cumpliendo los requerimientos de la función
+  \textit{reduce}: es idempotente, pues \verb|r| comienza vacío y no se
+  producen inserciones en el parámetro de entrada, es conmutativa, pues $A \cup
+  B$ tiene los mismos elementos $B \cup A$, pese al orden, y es asociativa,
+  pues tomar el máximo sobre 3 conjuntos es lo mismo que tomar el máximo entre
+  2 conjuntos y compararlo contra el máximo del otro conjunto.
+  \item \verb|reduce(k, rv)|: de nuevo, \verb|rv| contiene ahora un arreglo que
+  contiene los 10 (o menos) posts con mayor puntaje. Solo se retorna el
+  promedio de la sumatoria de la cantidad de comentarios.
+\end{itemize}
+
+El resultado de aplicar el proceso de \textit{map-reduce} es volcado a una
+colección llamada \textbf{ej3} y se imprime el valor de la única entrada que
+puede o tener dicha colección.
 
 \subsection{Ejercicio 4}
+El fin de este ejercicio es encontrar al usuario con mayor cantidad de
+\textit{upvotes} entre todos los usuarios que realizaron como máximo 5 posts.
+Para cumplir dicho fin, se implementaron solamente las funciones \textit{map} y
+\textit{reduce} del siguiente modo:
+\begin{itemize}
+  \item \verb|map()|: se genera una estructura con un campo \verb|votos|,
+  inicializado en la cantidad de \textit{upvotes} del posts, y un campo
+  \verb|cantidad|, que se utilizará para acumular la cantidad de posts del
+  usuario, inicializado en $1$. Esta estructura se emite utilizando como clave
+  el nombre del usuario que creó el post.
+  \item \verb|reduce(k, v)|: se genera una estructura \verb|r| con los campos
+  \verb|votos| y \verb|cantidad| inicializados en $0$. Esta estructura se usa
+  para acumular la cantidad de votos y la cantidad de posts del usuario
+  \verb|k|. Una vez realizada la acumulación, si la cantidad de posts de
+  usuario es mayor a $5$, se marca como inválido el usuario, seteando su
+  cantidad de votos en $-1$. Esto cumple con los requerimientos de la función
+  \textit{reduce}, pues solo se realizan sumas y el valor del campo
+  \verb|cantidad| nunca es negativo, por lo que una vez que se supera el valor
+  $5$, consecuentemente se seguirá superando, asegurando la idempotencia.
+\end{itemize}
+
+El resultado de aplicar el proceso de \textit{map-reduce} es volcado a una
+colección llamada \textbf{ej4}, en la cual se filtran los resultados y solo se
+tienen en cuenta los registros cuya cantidad de votos es \textbf{mayor} a $-1$,
+es decir, los registros pertenecientes a aquellos usuarios que tienen a lo sume
+5 posts y luego es recorrida linealmente para obtener la entrada con mayor
+valor del campo \verb|votos|. Una vez hecho esto, se imprime la clave
+correspondiente al primer valor, es decir, el nombre de usuario.
 
 \subsection{Ejercicio 5}
+En este ejercicio se pide encontrar la cantidad de palabras presentes en el
+título de cada los posts de los \textit{subreddits} cuyo puntaje se encuentre
+entre 280 y 300. Para obtener este resultado, se implementaron las funciones
+\textit{map}, \textit{reduce} y \textit{finalize} del siguiente modo:
+\begin{itemize}
+  \item \verb|map()|: se crea una estructura con campos \verb|puntaje|,
+  inicializado en el puntaje del post, y \verb|palabras|, inicializado en la
+  cantidad de palabras del título del posts. Se considera como palabra todo
+  secuencia de caracteres no correspondientes a espacios en blanco (es decir,
+  espacio, tabulador, salto de línea, etc.). Esta estructura es emitida
+  utilizando como clave el nombre del \textit{subreddit} al que pertenece el
+  post.
+  \item \verb|reduce(k, v)|: se crea una estructura de acumulación en la cual
+  se suman los puntajes y la cantidad de palabras de los posts del
+  \textit{subreddit} \verb|k|. Como ya se demostró, como solo se realizan sumas
+  y los valores iniciales son $0$, se conservan las propiedades que debe
+  cumplir la función \textit{reduce}.
+  \item \verb|finalize(k, rv)|: solo se chequea si el puntaje se encuentra en
+  rango. Si es así, se devuelve la cantidad de palabras de los títulos de todos
+  los posts del \textit{subreddit}. Caso contrario, se invalida el resultado
+  retornando $-1$.
+\end{itemize}
 
+El resultado de aplicar el proceso de \textit{map-reduce} es volcado a una
+colección llamada \textbf{ej5}. En esta se filtran los resultados que tengan el
+campo \verb|value| (la cantidad de palabras en el título) el valor $-1$, es
+decir, se dejan de lado aquellos \textit{subreddits} cuyo puntaje \textbf{no}
+se encuentre entre 280 y 300. Los \textit{sureddits} restantes son ordenados
+decrecientemente e impresos.
 
 \newpage
 \section{Investigación}
