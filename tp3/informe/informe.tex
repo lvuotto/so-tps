@@ -264,14 +264,15 @@ más barato que tener clusters privados para cada usuario, y el benificio a la
 hora de realizar diversas tareas, como podría ser data-minning o búsqueda de
 spam, aumenta considerablemente.
 
-El problema es que al momento de administrar los recursos, el scheduler
+El problema es que a la hora de administrar los recursos, el scheduler
 implementado hasta el momento presenta algunos problemas que reducen de forma
 considerable el rendimiento al correr ciertos tipos de trabajos. Concretamente,
-el problema se da al correr grandes trabajos en conjunto con \textit{queries},
-es decir, trabajos de interacción con el usuario donde es importante el tiempo
-de respuesta, y no sólo el \textit{throughput}. Sin embargo, al tratar de
-encarar el problema concreto de \textit{scheduling} surgen dos incovenientes
-más, inherentes al paradigma \textit{map-reduce} en clusters multiusuario: la
+el problema se dispara al correr grandes trabajos en conjunto con
+\textit{queries}, es decir, trabajos de interacción con el usuario donde es
+importante el tiempo de respuesta, y no sólo el \textit{throughput}. Al tratar
+de encarar ésta situación surgen los dos problemas inherentes al paradigma
+\textit{map-reduce} que son el eje del paper al momento de proponer un
+\textit{scheduler} que mejore el rendimiento y tiempo de respuesta: la
 localía de datos, es decir, la necesidad de correr tareas sobre datos
 almacenados localmente, en contraposición a utilizar datos que no se encuentran
 disponibles en el mismo lugar físico, para poder así ganar performance y
@@ -352,10 +353,221 @@ empieza a correr tan pronto como lo haría en un cluster privado. Cabe destacar
 que, al matar a una tarea para asignar sus recursos a un nuevo trabajo, se
 disminuye el \textit{throughput}.
 
+Es en éste punto, después de implementar el nuevo \textit{scheduler}, donde los
+autores del paper se encuentran ante las dos carácteristicas (ya mencionadas
+anteriormente) más importantes del \textit{map-reduce} que impactan sobre el
+\textit{throughput} y el tiempo de respuesta:
+
+\begin{itemize}
+  \item \textbf{Localía de datos}, la aplicación de \textit{map-reduce} en los
+  nodos donde está la información lleva al rendimiento óptimo. En cambio, usar
+  nodos de otros rack donde se encuentra el nodo que contiene la información,
+  o inclusive del mismo, aumenta el tiempo de finalización, pues se genera un
+  cuello de botella al ir a buscar la información necesaria a otro nodo.
+  \item \textbf{Interdependencia entre el map y el reduce}, ésto es, los
+  \textit{reduce} no puede finalizar hasta que todos los \textit{maps} hayan
+  terminado. De esta forma, los recursos ocupados por tareas de reducción
+  estarán siendo desperdiciados si están a la espera de la finalización de los
+  \textit{maps}. Recursos que podrían ser utilizados por otros trabajos en
+  espera.
+\end{itemize}
+
+Con respecto al primer ítem, en el paper se analizan dos situaciones en
+concreto, la primera es la poca localidad datos que logran los trabajos 
+chicos, debido a que al ser chicos, tienen pocos bloques de datos sobre los
+cuales trabajar, con lo cual la probabilidad de que se le asigne un nodo con el
+bloque necesario es baja, de hecho es directamente proporcional al tamaño de
+datos sobre el cual el trabajo va a operar.
+
+La segunda situación es refirida como \textit{sticky slots}, debido a que los
+trabajos tienden a usar los mismos nodos sobre los cuales ya estaba trabajando.
+Es decir, si un trabajo tenía una tarea corriendo en el nodo X, cuando dicha
+tarea termine y el trabajo necesite otro nodo para poner a correr otra tarea,
+el scheduler le asignará de vuelta el nodo X. De esta forma los trabajos
+tienden a quedarse en los mismos nodos, con lo cual, si éstos no eran
+convenientes (en términos de localía) el rendimiento del trabajo se verá
+perjudicado.
+
+La solución propuesta por los autores consiste en \textit{esperar un poco}
+antes de asignar los recursos a las tareas, en contraposición de ubicarlas en
+el primer nodo disponible.
+
+Cuando un recurso se libera, si el primer trabajo que tiene que ser puesto a
+correr, no lo puede hacer de forma local, se pregunta por el siguiente, y así
+sucesivamente. En primera instancia, esto podría llevar a \textit{starvation},
+con lo cual, si se consume un cierto tiempo en el cual el trabajo no
+fue puesto a correr, se lo deja correr a nivel no-local. En la implementación
+de \textit{FAIR} existen dos tiempos límites, pues hay tres jerarquías de
+localía (nodo, rack y cluster), $T_1$ y $T_2$, pasado $T_1$ se habilita al
+trabajo a correr en el mismo rack donde está el dato, y pasado $T_2$ se lo
+habilita a correr en cualquier nodo. También se implementó que si un trabajo
+tiene tareas corriendo en un nivel superior y luego en uno inferior, vuelva a
+un nivel más abajo, asegurándo así que si el trabajo tuvo \textit{mala suerte}
+en las primeras asignaciones, no tendrá que correr siempre a nivel no-local.
+
+Sin embargo, si no es implementado inteligentemente puede no ser efectivo. En
+términos de tiempo de respuesta, lo óptimo es no esperar para poner a correr
+las tareas de uso intensivo de CPU, pero sí retrasas los trabajos que utilizen
+mucha entrada y salida.
+
+Otro problema con éste mecanismo para mejorar la localidad es que se pueden
+generar \textit{hotpots}, es decir, nodos que son requeridos por varias tareas,
+generando así un cuello de botella en dicho nodo, y dejando los otros nodos
+sin utilizar. La solución a ésto fue mencionada en el párrafo anterior, la idea
+es clasificar a la tarea según su uso de CPU y de IO, dejando correr
+no-localmente a las de uso intensivo de CPU y tratar de correr localmente a las
+de entrada y salida. Esta política es referida por los autores como
+\textit{IO-rate biasing}, y se basa en que correr una tarea de uso intensivo de
+CPU de forma no local pone menos peso en la red que correr una de entrada y
+salida, pues la lectura de memoria de la primera es significativamente menor a
+la de la segunda. Ese método se puede implementar configurando los tiempos de
+espera para las tareas de uso intensivo de CPU más bajos que para las de
+entrada y salida.
+
+Con respecto a la interdependencia del \textit{map-reduce} el problema es
+claro, trabajos largos que reservan estaciones de trabajo para
+aplicar la función de reducción pero el \textit{map} está todavía
+ejecutándose, dejando sin recursos (reservados pero en desuso) a otros
+trabajos.
+
+Los autores analizan el problema y caracterizan su origen en que se conciben a
+operaciones con distintos requerimientos de recursos como una sola tarea. Pues
+en cualquier momento dado, la función de reducción está usando la red para
+copiar las claves intermedias del \textit{map}, o está haciendo uso intensivo
+del CPU para aplicar la función en sí, pero nunca ambas.
+
+Con esto en mente, la solución propuesta (\textit{Copy-Compute Splitting}) en el paper es dividir al
+\textit{reduce} en dos tipos de tareas distintos, la tarea de copiado y la de
+cómputo. La primera consiste en copiar y fusionar las claves intermedias (lo
+cual requiere un uso intensivo de la red), y la segunda consiste en computar la
+función de reducción (uso intensivo del CPU).
+
+Intuitivamente, lo lógico parecería separar al \textit{reduce} en dos tareas
+distintas, sin embargo ésto es bastante complejo en la práctica, por lo que la
+solución establecida es un tener módulo de control que gestione cuándo comienza la fase
+de computado (una vez finalizada la fase de copiado) y cuántos recursos
+dedicados a cada fase hay para cada trabajo.
+
+Para evaluar las soluciones propuestas, los autores realizaron varios
+experimentos, sobre distintos escenarios. No se ahondará sobre los detalles de
+los experimentos, pero sí en serán evaluados sus resultados.
+
+En términos de tiempo de respuesta, el scheduler propuesto en el paper
+(\textit{FAIR}), en conjunto con la téctnica \textit{Copy-Compute Splitting} 
+logran mejoras (en comparación con \textit{FIFO}, la implementación hasta el
+momento) para trabajos chicos de hasta $2$x en 
+promedio, y hasta un $4.6$x en el mejor caso; en cambio, para trabajos grandes,
+tanto el mejor caso como el promedio se mantienen igual o disminuye su
+tiempo de respuesta ligeramente. Sin utilizar \textit{Copy-Compute Splitting},
+\textit{FAIR}  disminuye su mejoría en los trabajos chicos y los trabajos 
+medianos, quedando casi igual en los trabajos grandes.
+
+Inclusive al aplicar \textit{Copy-Compute Splitting} en \textit{FIFO} se logra
+una mejoría de hasta $1.2$x en el mejor caso, y $1$x en el caso promedio
+trabajos chicos y medianos, a costo de tener una ligera pérdida en trabajos
+grandes.
+
+En términos de localía de datos, el resultado de usar \textit{Delay Scheduling}
+es muy bueno. Se logra incrementar la localía hasta en un $100\%$, sin impactar
+en el tiempo de respuesta, sin embargo, en un ambiente con un cuello de botella
+más grande en el ancho de banda (en comparación con dónde fueron hechos los
+experimentos) el impacto de dicha mejora sí sería significativa.
+
+Analizando \textit{Delay Scheduling} en más detalle, los autores probaron cómo
+afecta éste en el \textit{throughput} en un cluster privado de pequeño. Las
+mejoras en localía de datos (nodo donde está el dato) fueron de hasta un $75\%$
+y hasta un $100\%$ en localía a nivel rack. Y con respecto al
+\textit{throughput} las mejorías llegan hasta $1.7$x, aunque se espera que
+dicha mejora aumente a medida que aumente el tamaño del cluster.
+
+Para probar la mejoría con respecto a los \textit{Sticky Spots} (mencionados
+anteriormente), los autores corrieron trabajos concurrentes logrando mejoras
+proporcionales a la cantidad de trabajos, reduciendo a la mitad el tiempo de
+finalización al correr 50 trabajos concucrrentes, y mejorando la localía hasta
+llegar a un $100\%$. Con respecto a los tiempos de respuesta no se encontraron
+mejoras significativas.
+
+La utilización de la política \textit{IO-rate biasing} junto con \textit{Delay
+Scheduling} alcanza mejoras de hasta un $15\%$ para los trabajos de entrada
+y salida, y hasta un $44\%$ para los trabajos de uso intensivo de CPU.
+
+\newpage
+\section{Discusión}
+A lo largo del paper, se hace mención a dos grandes problemas que presenta la
+utilización del paradigma \textit{map-reduce} en clusters que pueden ser
+generalizados a dos problemas generales a los clusters de uso intensivos de
+datos, ésto es \textit{localidad de datos} y \textit{interdependencia de
+tareas} (abordado anteriormente como interdependencia de \textit{map-reduce}).
+
+Si bien en el paper éstos problemas son tratados para el paradigma en cuestión,
+la discución dada y los problemas encontrados son extensibles a cualquier
+cluster de las mismas características.
+
+Para mitigar éstos problemas, además de los mecanismos propuestos para realizar
+los algoritmos de scheduling, en el paper se proponen lineamientos generales
+para poder lograr utilizar los recursos de forma eficiente y proveer al
+ususario aislamiento:
+
+\begin{itemize}
+  \item \textbf{Tareas chicas} en duración y que consuman pocos recursos. Que
+  sea chica logrará que las tareas nuevas empiezen rápido (minimizando el
+  tiempo de respuesta), y que consuman pocos recursos conseguirá que consigan
+  recursos más rápido (análogo a la idea de un scheduler con quantums cortos).
+  \item \textbf{Que los requerimientos de recursos de las tareas sean
+  disjuntos} para tener controles de admisión separados para cada tipo de
+  recurso (como el módulo de control descripto anteriormente).
+  \item \textbf{Tareas largas desalojables}, análogo a desalojar procesos en un
+  scheduler por quantums.
+  \item \textbf{Saber sacrificar aislamiento por rendimiento}.
+\end{itemize}
+
+Cabe destacar que la solución propuesta por los autores no es la ótpima en
+todos los aspectos: el objetivo principal era lograr una política de
+\textit{scheduling} que brinde a los usuario la sensación de utilizar un
+pequeño cluster privado, logrando el menor desperdicio de recursos posible. Si
+se mira la política desde el punto de vista del tiempo de respuesta y el uso de
+espacio intermedio, resulta no ser la mejor comparada con otras políticas, pues
+se retrasa la ejecución de un trabajo en pos de obtener mejor localidad de
+datos.
+
+Sin embargo, la política triunfa a la hora de proveer aislamiento. Esto le da a
+los usuarios la sensación de tener un pequeño cluster privado, permitiendo así
+que la ejecución de trabajos pequeños se lleve a cabo al poco tiempo de ser
+enviados, logrando así que los usuarios obtengan sus resultados sin tener que
+sufrir la espera de trabajos largos, como podría suceder en una política
+\textit{FIFO}.
 
 
 \newpage
 \section{Conclusión}
+Como mencionamos al principio de la explicación, tener un cluster compartido
+permite utilizar los recursos disponibles mejor de lo que se usarían si
+estuviesen divididos en varios clusters privados (más pequeños), hasta permite
+realizar tareas que serían imposibles de hacer en pequeños clusters privados
+con los datos particionados. Sin embargo, usar clusters compartidos sin tener
+ningún tipo de consideración para proveer tiempos de respuestas rápidos a los
+usuarios es un gran problema.
+
+En éste eje se centra el debate del paper, cómo lograr un punto medio entre
+la optimización de recursos y proveer al usuario la ilusión de tener un
+cluster privado. Es por ésto que varias de las elecciones de los autores del
+paper empeoran ligeramente algunas métricas como el \textit{throughput} para 
+favorecer el aislamiento.
+
+Con éste objetivo en mente, los autores lograron implementar un scheduler que
+utiliza mecanismos como \textit{Delay Scheduling}, \textit{IO-rate biasing} y
+\textit{Copy Compute Splitting} que hacen frente a los dos grandes problemas
+subyacentes al uso de cluster con uso intensivos de datos que afectaban el
+rendimiento de la primer implementación de \textit{FAIR}, manteniendo siempre
+dos principios, aislamiento (darle al usuario su mínima cantidad de recursos) y
+\textit{statistical multiplexing} (reutilización de recursos en desuso).
+
+Con éstos mecanismos lograron sortear las dificultades encontradas, no sólo
+para el scheduler propuesto por ellos, sino para otras políticas de
+\textit{scheduling} también, como \textit{FIFO}. En las experimentaciones
+realizadas mostraron que sus propuestas fueron fructíferas, a veces relegando
+rendimiento en algunas métricas en ciertas instancias para favorecer uno de los
+objetivos del \textit{scheduler}, mantener el aislamiento del usuario.
 
 
 \end{document}
